@@ -1,4 +1,4 @@
-#Draft of workflow:
+# Draft of workflow:
 
 1) Convert topo into usable format
 1) For best use, it seems like emulating the LandFire topo structure should work best here
