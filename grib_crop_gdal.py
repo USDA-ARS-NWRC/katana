@@ -47,20 +47,20 @@ def grib_to_geotiff(fp_in, fp_out, x, y, buff=1500, prjsrs='EPSG:26911'):
 cfg = "./test_tuol.ini"
 fp_in = 'test.grib2'
 fp_out = 'new.tif'
+fp_dem = 'tuolx_50m_topo.nc'
+# # initialize smrf
+# s = SMRF(cfg)
+#
+# # calculate bbox based off of smrf params
+# zone_number = s.config['gridded']['zone_number']
+#
+# u = utm.from_latlon(s.config['topo']['basin_lat'],
+#                     s.config['topo']['basin_lon'],
+#                     zone_number)
+# use_zone_number = u[2]
+# use_zone_letter = u[3]
 
-# initialize smrf
-s = SMRF(cfg)
-
-# calculate bbox based off of smrf params
-zone_number = s.config['gridded']['zone_number']
-
-u = utm.from_latlon(s.config['topo']['basin_lat'],
-                    s.config['topo']['basin_lon'],
-                    zone_number)
-use_zone_number = u[2]
-use_zone_letter = u[3]
-
-ts = get_topo_stats(s.config['topo']['dem'], filetype='ipw')
+ts = get_topo_stats(fp_dem)#, filetype='ipw')
 x = ts['x']
 y = ts['y']
 
@@ -71,7 +71,7 @@ Create list of files based on input dates here. Run through files and
 create matching tiffs. Then create netcdf file from all of the tiffs
 """
 
-grib_to_geotiff(fp_in, fp_out, x, y, buff=1500, prjsrs='EPSG:26911')
+grib_to_geotiff(fp_in, fp_out, x, y)
 
 # ur = np.array(utm.to_latlon(np.max(x), np.max(y), use_zone_number, use_zone_letter))
 # ll = np.array(utm.to_latlon(np.min(x), np.min(y), use_zone_number, use_zone_letter))
