@@ -33,7 +33,7 @@ def grib_to_geotiff(fp_in, fp_out, x, y, buff=1500, prjsrs='EPSG:26911'):
             prjsrs: assuming UTM 11, extents of cropped domain
     """
     action = 'gdal_translate -projwin_srs {} -projwin {} {} {} {} \
-              -b 9 -b 10 -b 66 -b 101  {} {}\
+              -b 71 -b 72 -b 66 -b 101  {} {}\
               '.format(prjsrs,
                        np.min(x) - buff, np.max(y) + buff,
                        np.max(x) + buff, np.min(y) - buff,
@@ -44,7 +44,7 @@ def grib_to_geotiff(fp_in, fp_out, x, y, buff=1500, prjsrs='EPSG:26911'):
     s.wait()
 
 
-cfg = "./test.ini"
+cfg = "./test_tuol.ini"
 fp_in = 'test.grib2'
 fp_out = 'new.tif'
 
