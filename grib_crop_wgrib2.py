@@ -16,8 +16,7 @@ Outline:
 """
 import numpy as np
 import matplotlib.pyplot as plt
-from smrf.framework.model_framework import SMRF
-from awsm.data.topo import get_topo_stats
+from get_topo import get_topo_stats
 import utm
 #import subprocess
 from subprocess import Popen, PIPE
@@ -58,6 +57,10 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500, zone_letter='N', zon
     fp_out = os.path.join(dir1,
                           'hrrr.t00z.wrfsfcf{}.grib2'.format(file_dt.strftime(fmt2)))
 
+    # create directory if needed
+    if not os.path.isdir(dir1):
+        os.makedirs(dir1)
+
     # find bounds (to_latlon returns (LATITUDE, LONGITUDE).)
     ur = np.array(utm.to_latlon(np.max(x)+buff, np.max(y)+buff, zone_number, zone_letter))
     ll = np.array(utm.to_latlon(np.min(x)-buff, np.min(y)-buff, zone_number, zone_letter))
@@ -86,40 +89,31 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500, zone_letter='N', zon
 
     os.remove(tmp_grib)
 
-
+# Inputs
+fp_dem = 'tuolx_50m_topo.nc'
 cfg = "./test_tuol.ini"
-fp_in = 'test.grib2'
 zone_letter = 'N'
 zone_number = 11
 
-#out_dir = './sim_files_grib/'
-#out_dir = '/home/micahsandusky/Documents/Code/test_windninja/sim_files_grib'
-out_dir = '/home/micahsandusky/Documents/Code/test_windninja/NOMADS-HRRR-CONUS-3-KM-tuol.asc/'
-fp_dem = 'tuolx_50m_topo.nc'
 start_date = pd.to_datetime('2018-09-20 00:00')
 end_date = pd.to_datetime('2018-09-21 00:00')
 directory = './tmp_hrrr'
+out_dir = './sim_files_grib'
+
+# out_dir = '/home/micahsandusky/Documents/Code/test_windninja/NOMADS-HRRR-CONUS-3-KM-tuol.asc/'
 
 # get list of days to grab
 fmt = '%Y%m%d'
 dtt = end_date - start_date
 ndays = dtt.days
-#days_1 = datetime.timedelta(days=1)
 date_list = [start_date + datetime.timedelta(days=x) for x in range(0, ndays+1)]
 
-#dt = pd.to_datetime(date_list)[0].strftime(fmt))
-#fps = ['tmp_hrrr/hrrr.20180920/hrrr.t00z.wrfsfcf01.grib2', 'tmp_hrrr/hrrr.20180920/hrrr.t00z.wrfsfcf01.grib2']
-
-ts = get_topo_stats(fp_dem)#, filetype='ipw')
+ts = get_topo_stats(fp_dem)
 x1 = ts['x']
 y1 = ts['y']
 
-#initialize_hrrr_nc(fp_out)
-#print(date_list)
-is_initalized = False
 for idt, dt in enumerate(date_list[:1]):
     # get files
-    #fps = ['tmp_hrrr/hrrr.20180920/hrrr.t00z.wrfsfcf01.grib2', 'tmp_hrrr/hrrr.20180920/hrrr.t00z.wrfsfcf01.grib2']
     hrrr_dir = os.path.join(directory,
                             'hrrr.{}/hrrr.t*.grib2'.format(dt.strftime(fmt)))
     fps = glob.glob(hrrr_dir)
@@ -137,113 +131,3 @@ for idt, dt in enumerate(date_list[:1]):
 
         else:
             print('{} is not in date range'.format(file_time))
-
-"""
- - loop through days and file
- - initialize time series netcdf
- - parse date
- - write temp netcdf
- - read in netcdf and store in time series netcdf
- - delete temp netcdf
-
-"""
-# ur = np.array(utm.to_latlon(np.max(x), np.max(y), use_zone_number, use_zone_letter))
-# ll = np.array(utm.to_latlon(np.min(x), np.min(y), use_zone_number, use_zone_letter))
-#
-# buff = 0.1 # buffer of bounding box in degrees
-# ur += buff
-# ll -= buff
-# bbox = np.append(np.flipud(ll), np.flipud(ur))
-#
-# dates = '20180722'
-# path_hrrr = '/home/micahsandusky/hrrr_sample/'
-# path1 = 'hrrr.{}/'.format(dates)
-# files = 'hrrr.t{:02d}z.wrfsfcf01.grib2'
-#
-# #fp_open = os.path.join('./tmp_hrrr/',files)
-# fp_open = os.path.join('./tmp_hrrr/new.grib2')
-#
-# fp ='/home/micahsandusky/hrrr_sample/test.grib2'
-
-# gdal_translate -of netCDF -projwin_srs EPSG:26911 -projwin 259416.9 4179136.1 353117.1 4096335.9  test.grib2 new.nc
-# EPSG:26911
-
-
-# action = 'gdalwarp -te_srs -of GRIB -te {} {} {} {}'
-# action = action.format(np.min(x)-buff, np.min(y)-buff,
-#                        np.max(x)+buff, np.max(y)+buff)
-
-#print(action)
-
-
-# extra stuff
-# double reftime2(time2)
-# 	standard_name = "forecast_reference_time"
-# 	long_name = "GRIB reference time"
-# 	calendar = "proleptic_gregorian"
-# 	units = "Hour since 2018-09-06T00:00:00Z"
-# 	_CoordinateAxisType = "RunTime"
-# double time2(time2)
-# 	units = "Hour since 2018-09-06T00:00:00Z"
-# 	standard_name = "time"
-# 	long_name = "GRIB forecast or observation time"
-# 	calendar = "proleptic_gregorian"
-# 	bounds = "time2_bounds"
-# 	_CoordinateAxisType = "Time"
-# float height_above_ground(height_above_ground)
-# 	units = "m"
-# 	long_name = "Specified height level above ground"
-# 	positive = "up"
-# 	Grib_level_type = 103
-# 	datum = "ground"
-# 	_CoordinateAxisType = "Height"
-# 	_CoordinateZisPositive = "up"
-# float y(y)
-# 	standard_name = "projection_y_coordinate"
-# 	units = "km"
-# 	_CoordinateAxisType = "GeoY"
-# float x(x)
-# 	standard_name = "projection_x_coordinate"
-# 	units = "km"
-# 	_CoordinateAxisType = "GeoX"
-# LambertConformal_Projection
-# 	grid_mapping_name = "lambert_conformal_conic"
-# 	latitude_of_projection_origin .
-# 	longitude_of_central_meridian = 265.
-# 	standard_parallel = 25.
-# 	earth_radius = 6371200.
-# 	_CoordinateTransformType = "Projection"
-# 	_CoordinateAxisTypes = "GeoX GeoY"
-# double reftime(time)
-# 	standard_name = "forecast_reference_time"
-# 	long_name = "GRIB reference time"
-# 	calendar = "proleptic_gregorian"
-# 	units = "Hour since 2018-09-06T00:00:00Z"
-# 	_CoordinateAxisType = "RunTime"
-# double time(time)
-# 	units = "Hour since 2018-09-06T00:00:00Z"
-# 	standard_name = "time"
-# 	long_name = "GRIB forecast or observation time"
-# 	calendar = "proleptic_gregorian"
-# 	_CoordinateAxisType = "Time"
-# float height_above_ground1(height_above_ground1)
-# 	units = "m"
-# 	long_name = "Specified height level above ground"
-# 	positive = "up"
-# 	Grib_level_type = 103
-# 	datum = "ground"
-# 	_CoordinateAxisType = "Height"
-# 	_CoordinateZisPositive = "up"
-# double reftime1(time1)
-# 	standard_name = "forecast_reference_time"
-# 	long_name = "GRIB reference time"
-# 	calendar = "proleptic_gregorian"
-# 	units = "Hour since 2018-09-06T00:00:00Z"
-# 	_CoordinateAxisType = "RunTime"
-# double time1(time1)
-# 	units = "Hour since 2018-09-06T00:00:00Z"
-# 	standard_name = "time"
-# 	long_name = "GRIB forecast or observation time"
-# 	calendar = "proleptic_gregorian"
-# 	bounds = "time1_bounds"
-# 	_CoordinateAxisType = "Time"
