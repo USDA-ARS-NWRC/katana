@@ -75,8 +75,11 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500, zone_letter='N', zon
                                                            lats, latn, tmp_grib)
 
     # call to grab correct variables
-    action2 = "wgrib2 {} -match '^(66|71|72|101):' -GRIB {}".format(tmp_grib,
-                                                                    fp_out)
+    action2 = "wgrib2 {} -match 'TMP:2 m|UGRD:10 m|VGRD:10 m|TCDC:' -GRIB {}"
+    action2 = action2.format(tmp_grib,
+                             fp_out)
+    # action2 = "wgrib2 {} -match '^(66|71|72|101):' -GRIB {}".format(tmp_grib,
+    #                                                                 fp_out)
 
     # run commands
     print('Running command {}'.format(action))
@@ -99,7 +102,7 @@ start_date = pd.to_datetime('2018-09-20 00:00')
 end_date = pd.to_datetime('2018-09-21 00:00')
 directory = './tmp_hrrr'
 out_dir = './sim_files_grib'
-out_dir = '/data/data'
+#out_dir = '/data/data'
 
 # out_dir = '/home/micahsandusky/Documents/Code/test_windninja/NOMADS-HRRR-CONUS-3-KM-tuol.asc/'
 
