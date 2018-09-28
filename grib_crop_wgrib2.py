@@ -38,13 +38,13 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500, zone_letter='N', zon
 
     Args:
             fp_in: grib file path
-            out_dir:
-            file_dt
+            out_dir: output directory to write hrrr data
+            file_dt: time stamp of file
             x: x coords in utm of new domain
             y: y coords in utm of new domain
             buff: buffer in meters for buffering domain
-            zone_letter:
-            zone_number:
+            zone_letter: UTM zone letter (N)
+            zone_number: UTM zone number
     """
     # date format for files
     #fmt = '%Y%m%d-%H-%M'
@@ -91,7 +91,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500, zone_letter='N', zon
 
 # Inputs
 fp_dem = 'tuolx_50m_topo.nc'
-cfg = "./test_tuol.ini"
+#cfg = "./test_tuol.ini"
 zone_letter = 'N'
 zone_number = 11
 
@@ -99,6 +99,7 @@ start_date = pd.to_datetime('2018-09-20 00:00')
 end_date = pd.to_datetime('2018-09-21 00:00')
 directory = './tmp_hrrr'
 out_dir = './sim_files_grib'
+out_dir = '/data/data'
 
 # out_dir = '/home/micahsandusky/Documents/Code/test_windninja/NOMADS-HRRR-CONUS-3-KM-tuol.asc/'
 

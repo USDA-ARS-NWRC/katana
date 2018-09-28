@@ -102,6 +102,7 @@ Run mkdir /packages/wind/build \
     && cmake -DNINJA_CLI=ON -DNINJAFOAM=OFF -DNINJA_QTGUI=OFF /packages/wind/windninja \
     && make \
     && make install \
+    && ldconfig \
     && export WINDNINJA_DATA=/packages/wind/windninja/data
 
 ####################################################
