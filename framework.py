@@ -24,30 +24,35 @@ from windninja_to_nc import convert_wind_ninja
 
 class Katana():
     """
-
+    Class created to wrap all functionality needed to run WindNinja in the
+    context of the USDA ARS snow-water supply modeling workflow
     """
-    def __init__():
-        self.fp_dem = 'tuolx_50m_topo.nc'
-        self.zone_letter = 'N'
-        self.zone_number = 11
-        self.buff = 6000
+    
+    def __init__(fp_dem, zone_letter, zone_number, buff, start_date, end_date,
+                 wy_start, directory, out_dir, wn_topo, wn_topo_prj, wn_cfg):
+
+
+        self.fp_dem = fp_dem
+        self.zone_letter = zone_letter
+        self.zone_number = zone_number
+        self.buff = buff
 
         # find start and end dates
-        self.start_date = pd.to_datetime('2018-09-20 00:00')
-        self.end_date = pd.to_datetime('2018-09-21 00:00')
+        self.start_date = start_date
+        self.end_date = end_date
 
-        self. wy_start = pd.to_datetime('2017-10-01 00:00')
+        self. wy_start = wy_start
 
         self.fmt_date = '%Y%m%d'
 
-        self.directory = './tmp_hrrr'
+        self.directory = directory
         #out_dir = './sim_files_grib'
-        self.out_dir = '/data/data'
+        self.out_dir = out_dir
 
         # wind ninja inputs
-        self.wn_topo = './tuol.asc'
-        self.wn_topo_prj = './tuol.prj'
-        self.wn_cfg = './windninjarun.cfg'
+        self.wn_topo = wn_topo
+        self.wn_topo_prj = wn_topo_prj
+        self.wn_cfg = wn_cfg
         # prefix that wind ninja will use in the file naming convention
         self.wn_prefix = os.path.splitext(os.path.basename(self.wn_topo))
 
@@ -55,8 +60,19 @@ class Katana():
         self.ts = get_topo_stats(self.fp_dem)
         self.x1 = self.ts['x']
         self.y1 = self.ts['y']
+        self.dxy = np.abs(ts['dx'])
 
-    def make_wn_cfg(self, nthreads, out_dir, dxy, wn_topo, num_hours):
+    def make_wn_cfg(self, nthreads, out_dir, wn_topo, num_hours):
+        """
+        Edit and write the config file options for the WindNinja program
+
+        Args:
+            nthreads:
+            out_dir:
+            wn_topo:
+            num_hours:
+
+        """
 
         # populate config files
         base_cfg = {
@@ -70,7 +86,7 @@ class Katana():
                     'units_output_wind_height'        : 'm',
                     'vegetation'                      : 'grass',
                     'diurnal_winds'                   : True,
-                    'mesh_resolution'                 : dxy,
+                    'mesh_resolution'                 : self.dxy,
                     'units_mesh_resolution'           : 'm',
                     'write_goog_output'               : True,
                     'write_shapefile_output'          : False,
@@ -87,7 +103,10 @@ class Katana():
                 f.write('{} = {}'.format(k,v))
 
     def run_wind_ninja():
+        """
+        Create the command line call to run the WindNinja_cli
 
+        """
         action = 'WindNinja_cli {}'.format(self.wn_cfg)
 
         print('Running {}'.format(action))
@@ -95,6 +114,9 @@ class Katana():
         s.wait()
 
     def run_katana(self):
+        """
+
+        """
 
         # create the new grib files
         date_list, num_list = create_new_grib(self.start_date, self.end_date,
@@ -110,7 +132,7 @@ class Katana():
             out_dir_day = os.path.join(self.outdir,
                                        'hrrr.{}'.format(day.strftime(self.fmt_date)))
             # run WindNinja_cli
-            self.make_wn_cfg(self.nthreads, out_dir_day, self.dxy,
+            self.make_wn_cfg(self.nthreads, out_dir_day,
                              self.wn_topo, num_list[idd]):
 
             self.run_wind_ninja()

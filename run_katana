@@ -4,6 +4,7 @@
 from datetime import datetime
 import sys
 import os
+import argparse
 
 from framework import Katana
 
@@ -21,8 +22,62 @@ def run():
     # if len(sys.argv) > 1:
     #     configFile = sys.argv[1]
 
+
+    #
+    # # wind ninja inputs
+    # self.wn_topo = './tuol.asc'
+    # self.wn_topo_prj = './tuol.prj'
+    # self.wn_cfg = './windninjarun.cfg'
+
+    # Parse arguments
+    p = argparse.ArgumentParser(description='Run Katana wind system.')
+
+    p.add_argument('-sd','--start_date', required=True,
+                    help="start date for run")
+
+    p.add_argument('-ed','--end_date', required=True,
+                    help="end date for run")
+
+    p.add_argument('-wys','--water_year_start', required=True,
+                    help="water year start date for the year")
+
+    p.add_argument('-indir','--input_directory', required=True,
+                    help="input directory where hrrr.<date> files are located")
+
+    p.add_argument('-outdir','--output_directory', required=True,
+                    help="directory where output will be stored")
+
+    p.add_argument('-wnt','--wn_topo', required=True,
+                    help='topo file for WindNinja')
+
+    p.add_argument('-wnp','--wn_prj', required=True,
+                    help='projection file for WindNinja')
+
+    p.add_argument('-wnc','--wn_cfg', required=True,
+                    help='config file path for WindNinja')
+
+    p.add_argument('-tp','--topo', required=True,
+                    help='path to smrf topo netcdf')
+
+    p.add_argument('-zn','--zn_number', required=True,
+                    help='UTM zone number for input topo')
+
+    p.add_argument('-zl','--zn_letter', required=True,
+                    help='UTM zone letter for input topo')
+
+    p.add_argument('-bf','--buff', required=False, defualt=6000
+                    help='buffer around SMRF domain for WindNinja input')
+
+
+    args = p.parse_args()
+
+
+    # start_date = args.....
+
+
     with Katana() as k:
         k.run_katana()
 
 if __name__ == '__main__':
+
     run()
