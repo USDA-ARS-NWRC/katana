@@ -1,19 +1,3 @@
-"""
-Basic outline for reading in grib files, converting to cropped netCDF
-with the correct variables
-
-Notes:
-Initialize a smrf instance from the correct config to make all of this easier, follow the loadGrid.py outline
-
-Outline:
--make hrrr.HRRR class
--set variable map to desired one
--make up a boundary box (add half km, round to nearest half km on either side of domain?)
--call class.get_saved_data with correct boundary box, var map, and grib file location
--create netcdf of the files
--write data to netcdf (make sure units, variables match the ones in the grib file to start)
-
-"""
 import numpy as np
 import matplotlib.pyplot as plt
 from get_topo import get_topo_stats
@@ -32,7 +16,8 @@ import glob
 Have to follow naming convention for hrrr, so run daily
 """
 
-def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500, zone_letter='N', zone_number=11):
+def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
+                  zone_letter='N', zone_number=11):
     """
     Function to write 4 bands from grib2 to cropped grib2
 
@@ -92,46 +77,59 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500, zone_letter='N', zon
 
     os.remove(tmp_grib)
 
-# Inputs
-fp_dem = 'tuolx_50m_topo.nc'
-#cfg = "./test_tuol.ini"
-zone_letter = 'N'
-zone_number = 11
 
-start_date = pd.to_datetime('2018-09-20 00:00')
-end_date = pd.to_datetime('2018-09-21 00:00')
-directory = './tmp_hrrr'
-out_dir = './sim_files_grib'
-#out_dir = '/data/data'
+def create_new_grib(start_date, end_date, directory, out_dir,
+                    x1, y1, zone_letter='N', zone_number=11, buff=6000):
+    """
+    Function to iterate through the dates and create new, cropped grib files
+    needed to run WindNinja
 
-# out_dir = '/home/micahsandusky/Documents/Code/test_windninja/NOMADS-HRRR-CONUS-3-KM-tuol.asc/'
+    Args:
+        start_date:     datetime object for start of run
+        end_date:       datetime object for end of run
+        directory:      directory storing the individual day directories for hrrr files
+        out_dir:        output directory for new hrrr files
+        x1:             UTM X coords for dem as numpy array
+        y1:             UTM Y coords for dem as numpy array
+        zone_letter:    UTM zone letter for dem
+        zone_number:    UTM zone number for dem
+        buff:           buffer to add onto dem domain in meters
 
-# get list of days to grab
-fmt = '%Y%m%d'
-dtt = end_date - start_date
-ndays = dtt.days
-date_list = [start_date + datetime.timedelta(days=x) for x in range(0, ndays+1)]
+    Returns:
+        date_list:      list of datetime days that are converted
+        fmt:            format of the day folders
 
-ts = get_topo_stats(fp_dem)
-x1 = ts['x']
-y1 = ts['y']
+    Additional:
+        outputs new hrrr grib2 files in out_dir
+    """
 
-for idt, dt in enumerate(date_list[:1]):
-    # get files
-    hrrr_dir = os.path.join(directory,
-                            'hrrr.{}/hrrr.t*.grib2'.format(dt.strftime(fmt)))
-    fps = glob.glob(hrrr_dir)
-    # write and read new netcdfs
-    for idf, fp in enumerate(fps):
-        bn = os.path.basename(fp)
-        # find hours from start of day
-        add_hrs = int(bn[6:8]) + int(bn[17:19])
-        file_time = pd.to_datetime(dt + datetime.timedelta(hours=add_hrs))
+    # get list of days to grab
+    fmt = '%Y%m%d'
+    dtt = end_date - start_date
+    ndays = dtt.days
+    date_list = [start_date + datetime.timedelta(days=x) for x in range(0, ndays+1)]
 
-        if file_time >= start_date and file_time <= end_date:
-            # convert grib to temp nc
-            grib_to_sgrib(fp, out_dir, file_time, x1, y1, buff=9000,
-                          zone_letter=zone_letter, zone_number=zone_number)
+    # loop through dates
+    for idt, dt in enumerate(date_list[:1]):
+        # get files
+        hrrr_dir = os.path.join(directory,
+                                'hrrr.{}/hrrr.t*.grib2'.format(dt.strftime(fmt)))
+        fps = glob.glob(hrrr_dir)
 
-        else:
-            print('{} is not in date range'.format(file_time))
+        # write and read new netcdfs
+        for idf, fp in enumerate(fps):
+            bn = os.path.basename(fp)
+            # find hours from start of day
+            add_hrs = int(bn[6:8]) + int(bn[17:19])
+            file_time = pd.to_datetime(dt + datetime.timedelta(hours=add_hrs))
+
+            # check if we are in the date range
+            if file_time >= start_date and file_time <= end_date:
+                # convert grib to temp nc
+                grib_to_sgrib(fp, out_dir, file_time, x1, y1, buff=buff,
+                              zone_letter=zone_letter, zone_number=zone_number)
+
+            else:
+                print('{} is not in date range'.format(file_time))
+
+    return date_list, fmt

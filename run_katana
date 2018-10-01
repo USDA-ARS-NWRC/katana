@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from datetime import datetime
+import sys
+import os
+
+from framework import Katana
+
+def run():
+    '''
+    katana is a command line program designed to take a config file. This
+    will be fed to the run_katana function within framework.
+    '''
+    # # Path for Docker use only
+    # configFile = '/code/awsm/test_data/RME_run/docker_pysnobal.ini'
+    #
+    # if not os.path.isfile(configFile):
+    #     configFile = './test_data/RME_run/config_pysnobal.ini'
+    #
+    # if len(sys.argv) > 1:
+    #     configFile = sys.argv[1]
+
+    with Katana() as k:
+        k.run_katana()
+
+if __name__ == '__main__':
+    run()
