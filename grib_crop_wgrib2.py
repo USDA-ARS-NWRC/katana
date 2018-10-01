@@ -97,7 +97,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
 
     Returns:
         date_list:      list of datetime days that are converted
-        fmt:            format of the day folders
+        num_list:       number of run hours per day
 
     Additional:
         outputs new hrrr grib2 files in out_dir
@@ -109,8 +109,12 @@ def create_new_grib(start_date, end_date, directory, out_dir,
     ndays = dtt.days
     date_list = [start_date + datetime.timedelta(days=x) for x in range(0, ndays+1)]
 
+    # list to track number of hours for each day
+    num_list = []
+
     # loop through dates
     for idt, dt in enumerate(date_list[:1]):
+        counter = 0
         # get files
         hrrr_dir = os.path.join(directory,
                                 'hrrr.{}/hrrr.t*.grib2'.format(dt.strftime(fmt)))
@@ -129,7 +133,12 @@ def create_new_grib(start_date, end_date, directory, out_dir,
                 grib_to_sgrib(fp, out_dir, file_time, x1, y1, buff=buff,
                               zone_letter=zone_letter, zone_number=zone_number)
 
+                # track hours per day
+                counter += 1
+
             else:
                 print('{} is not in date range'.format(file_time))
 
-    return date_list, fmt
+        num_list.append(counter)
+
+    return date_list, num_list

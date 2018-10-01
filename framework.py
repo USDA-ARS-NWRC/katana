@@ -15,6 +15,7 @@ Outline:
 
 """
 import os
+from subprocess import Popen, PIPE
 
 from get_topo import get_topo_stats
 from grib_crop_wgrib2 import create_new_grib
@@ -37,6 +38,8 @@ class Katana():
 
         self. wy_start = pd.to_datetime('2017-10-01 00:00')
 
+        self.fmt_date = '%Y%m%d'
+
         self.directory = './tmp_hrrr'
         #out_dir = './sim_files_grib'
         self.out_dir = '/data/data'
@@ -44,6 +47,7 @@ class Katana():
         # wind ninja inputs
         self.wn_topo = './tuol.asc'
         self.wn_topo_prj = './tuol.prj'
+        self.wn_cfg = './windninjarun.cfg'
         # prefix that wind ninja will use in the file naming convention
         self.wn_prefix = os.path.splitext(os.path.basename(self.wn_topo))
 
@@ -52,11 +56,48 @@ class Katana():
         self.x1 = self.ts['x']
         self.y1 = self.ts['y']
 
+    def make_wn_cfg(self, nthreads, out_dir, dxy, wn_topo, num_hours):
+
+        # populate config files
+        base_cfg = {
+                    'num_threads'                     : nthreads,
+                    'elevation_file'                  : os.path.abspath(wn_topo),
+                    'initialization_method'           : wxModelInitialization,
+                    'time_zone'                       : 'America/Denver',
+                    'forecast_filename'               : None,
+                    'forecast_duration'               : num_hours,
+                    'output_wind_height'              : 5.0,
+                    'units_output_wind_height'        : 'm',
+                    'vegetation'                      : 'grass',
+                    'diurnal_winds'                   : True,
+                    'mesh_resolution'                 : dxy,
+                    'units_mesh_resolution'           : 'm',
+                    'write_goog_output'               : True,
+                    'write_shapefile_output'          : False,
+                    'write_ascii_output'              : True,
+                    'write_farsite_atm'               : False,
+                    'write_wx_model_goog_output'      : False,
+                    'write_wx_model_shapefile_output' : False,
+                    'write_wx_model_ascii_output'     : False
+                    }
+
+        # write each line to config
+        with f as open(wn_cfg):
+            for k,v in base_cfg.items():
+                f.write('{} = {}'.format(k,v))
+
+    def run_wind_ninja():
+
+        action = 'WindNinja_cli {}'.format(self.wn_cfg)
+
+        print('Running {}'.format(action))
+        s = Popen(action, shell=True,stdout=PIPE)
+        s.wait()
 
     def run_katana(self):
 
         # create the new grib files
-        date_list, fmt_date = create_new_grib(self.start_date, self.end_date,
+        date_list, num_list = create_new_grib(self.start_date, self.end_date,
                                               self.directory, self.out_dir,
                                               self.x1, self.y1,
                                               zone_letter=self.zone_letter,
@@ -67,9 +108,12 @@ class Katana():
         # make netcdf for each day from ascii outputs
         for idd, day in enumerate(date_list):
             out_dir_day = os.path.join(self.outdir,
-                                       'hrrr.{}'.format(day.strftime(fmt_date)))
+                                       'hrrr.{}'.format(day.strftime(self.fmt_date)))
             # run WindNinja_cli
-            # run_wind_ninja()
+            self.make_wn_cfg(self.nthreads, out_dir_day, self.dxy,
+                             self.wn_topo, num_list[idd]):
+
+            self.run_wind_ninja()
 
             # convert that day to netcdf
             # convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
