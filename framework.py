@@ -14,8 +14,11 @@ Outline:
 -write data to netcdf (make sure units, variables match the ones in the grib file to start)
 
 """
+import numpy as np
+import pandas as pd
 import os
 from subprocess import Popen, PIPE
+from datetime import datetime
 
 from get_topo import get_topo_stats
 from grib_crop_wgrib2 import create_new_grib
@@ -27,9 +30,10 @@ class Katana():
     Class created to wrap all functionality needed to run WindNinja in the
     context of the USDA ARS snow-water supply modeling workflow
     """
-    
-    def __init__(fp_dem, zone_letter, zone_number, buff, start_date, end_date,
-                 wy_start, directory, out_dir, wn_topo, wn_topo_prj, wn_cfg):
+
+    def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
+                 end_date, wy_start, directory, out_dir, wn_topo,
+                 wn_topo_prj, wn_cfg, nthreads):
 
 
         self.fp_dem = fp_dem
@@ -52,22 +56,22 @@ class Katana():
         # wind ninja inputs
         self.wn_topo = wn_topo
         self.wn_topo_prj = wn_topo_prj
-        self.wn_cfg = wn_cfg
+        self.wn_cfg = os.path.abspath(wn_cfg)
         # prefix that wind ninja will use in the file naming convention
         self.wn_prefix = os.path.splitext(os.path.basename(self.wn_topo))
+        self.nthreads = nthreads
 
         # get info about model domain
         self.ts = get_topo_stats(self.fp_dem)
         self.x1 = self.ts['x']
         self.y1 = self.ts['y']
-        self.dxy = np.abs(ts['dx'])
+        self.dxy = np.abs(self.ts['dv'])
 
-    def make_wn_cfg(self, nthreads, out_dir, wn_topo, num_hours):
+    def make_wn_cfg(self, out_dir, wn_topo, num_hours):
         """
         Edit and write the config file options for the WindNinja program
 
         Args:
-            nthreads:
             out_dir:
             wn_topo:
             num_hours:
@@ -76,11 +80,11 @@ class Katana():
 
         # populate config files
         base_cfg = {
-                    'num_threads'                     : nthreads,
+                    'num_threads'                     : self.nthreads,
                     'elevation_file'                  : os.path.abspath(wn_topo),
-                    'initialization_method'           : wxModelInitialization,
+                    'initialization_method'           : 'wxModelInitialization',
                     'time_zone'                       : 'America/Denver',
-                    'forecast_filename'               : None,
+                    'forecast_filename'               : os.path.abspath(out_dir),
                     'forecast_duration'               : num_hours,
                     'output_wind_height'              : 5.0,
                     'units_output_wind_height'        : 'm',
@@ -98,11 +102,12 @@ class Katana():
                     }
 
         # write each line to config
-        with f as open(wn_cfg):
+        print('Creating file {}'.format(self.wn_cfg))
+        with open(self.wn_cfg, 'w') as f:
             for k,v in base_cfg.items():
-                f.write('{} = {}'.format(k,v))
+                f.write('{} = {}\n'.format(k,v))
 
-    def run_wind_ninja():
+    def run_wind_ninja(self):
         """
         Create the command line call to run the WindNinja_cli
 
@@ -126,17 +131,28 @@ class Katana():
                                               zone_number=self.zone_number,
                                               buff=self.buff)
 
-
+        print(num_list)
+        print(date_list)
         # make netcdf for each day from ascii outputs
         for idd, day in enumerate(date_list):
-            out_dir_day = os.path.join(self.outdir,
+            out_dir_day = os.path.join(self.out_dir,
                                        'hrrr.{}'.format(day.strftime(self.fmt_date)))
             # run WindNinja_cli
-            self.make_wn_cfg(self.nthreads, out_dir_day,
-                             self.wn_topo, num_list[idd]):
+            self.make_wn_cfg(out_dir_day, self.wn_topo, num_list[idd])
 
             self.run_wind_ninja()
 
             # convert that day to netcdf
             # convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
             #                    self.wy_start)
+
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Provide some logging info about when AWSM was closed
+        """
+
+        print('Katana closed --> %s' % datetime.now())

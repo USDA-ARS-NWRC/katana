@@ -5,6 +5,8 @@ from datetime import datetime
 import sys
 import os
 import argparse
+import numpy as np
+import pandas as pd
 
 from framework import Katana
 
@@ -24,10 +26,7 @@ def run():
 
 
     #
-    # # wind ninja inputs
-    # self.wn_topo = './tuol.asc'
-    # self.wn_topo_prj = './tuol.prj'
-    # self.wn_cfg = './windninjarun.cfg'
+
 
     # Parse arguments
     p = argparse.ArgumentParser(description='Run Katana wind system.')
@@ -65,17 +64,35 @@ def run():
     p.add_argument('-zl','--zn_letter', required=True,
                     help='UTM zone letter for input topo')
 
-    p.add_argument('-bf','--buff', required=False, defualt=6000
+    p.add_argument('-bf','--buff', required=False, default=6000,
                     help='buffer around SMRF domain for WindNinja input')
+
+    p.add_argument('-nt','--nthreads', required=False, default=1,
+                    help='number of WindNinja threads')
 
 
     args = p.parse_args()
 
+    fp_dem = os.path.abspath(args.topo)
+    zone_letter = args.zn_letter
+    zone_number = int(args.zn_number)
+    buff = int(args.buff)
+    start_date = pd.to_datetime(args.start_date)
+    end_date = pd.to_datetime(args.end_date)
+    wy_start = pd.to_datetime(args.water_year_start)
+    directory = os.path.abspath(args.input_directory)
+    out_dir = os.path.abspath(args.output_directory)
+    wn_topo = os.path.abspath(args.wn_topo)
+    wn_topo_prj = os.path.abspath(args.wn_prj)
+    wn_cfg = os.path.abspath(args.wn_cfg)
+    nthreads = args.nthreads
 
     # start_date = args.....
 
-
-    with Katana() as k:
+    with Katana(fp_dem, zone_letter, zone_number, buff,
+                start_date, end_date,
+                wy_start, directory, out_dir, wn_topo,
+                wn_topo_prj, wn_cfg, nthreads) as k:
         k.run_katana()
 
 if __name__ == '__main__':

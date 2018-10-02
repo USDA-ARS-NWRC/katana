@@ -106,14 +106,14 @@ def create_new_grib(start_date, end_date, directory, out_dir,
     # get list of days to grab
     fmt = '%Y%m%d'
     dtt = end_date - start_date
-    ndays = dtt.days
+    ndays = int(dtt.days)
     date_list = [start_date + datetime.timedelta(days=x) for x in range(0, ndays+1)]
 
     # list to track number of hours for each day
     num_list = []
 
     # loop through dates
-    for idt, dt in enumerate(date_list[:1]):
+    for idt, dt in enumerate(date_list):
         counter = 0
         # get files
         hrrr_dir = os.path.join(directory,
