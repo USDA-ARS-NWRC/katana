@@ -7,6 +7,7 @@ from get_topo import get_topo_stats
 import glob
 import pytz
 from datetime import datetime
+from scipy.interpolate import griddata
 
 '''
 Read in our top file and write ascii dem to run WindNinja
@@ -22,7 +23,8 @@ def create_nc(ts, wy_start, out_dir):
     m['units'] = ['m/s']
     m['description'] = ['wind speed']
 
-    netcdfFile = os.path.join(out_dir, 'wind_speed.nc')
+    netcdfFile = os.path.join('./', 'wind_speed.nc')
+    print(netcdfFile)
 
     dimensions = ('time', 'y', 'x')
     ds = nc.Dataset(netcdfFile, 'w')
@@ -49,9 +51,11 @@ def create_nc(ts, wy_start, out_dir):
         setattr(ds.variables[v], 'units', m['units'][i])
         setattr(ds.variables[v], 'description', m['description'][i])
 
+    #ds.setncattr_string('last modified', datetime.now())
+
     return ds
 
-def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start):
+def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start, dxy=None):
     """
 
     Args:
@@ -61,20 +65,32 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start):
         wy_start:       start date for water year in question
 
     Returns:
-        
+
 
     """
     # initialize the netcdf file
     ds = create_nc(ts, wy_start, out_dir_day)
     # get the grid spacing
-    dxy = int(np.abs(ts['dx']))
+    if dxy is None:
+        dxy = int(np.abs(ts['dx']))
 
+    XX, YY = np.meshgrid(ts['x'], ts['y'])
     # get the ascii files that need converted
-    d = sorted(glob.glob(os.path.join(out_dir_day,'{}_*_{:d}_vel.asc'.format(wn_prefix, dxy))),
-                                      key=os.path.getmtime)
+    search_key = os.path.join(out_dir_day,'{}_*_{:d}m_vel.asc'.format(wn_prefix, dxy))
+    d = sorted(glob.glob(search_key), key=os.path.getmtime)
+
     # sort the files by date time
     d.sort(key=lambda f: pd.to_datetime(os.path.basename(f).split('_')[1]+' '+os.path.basename(f).split('_')[2]))
-    print(d)
+
+    # get wind ninja topo stats
+    ts2 = get_topo_stats(d[0], filetype='ascii')
+    xwn = ts2['x'][:]
+    ywn = np.flipud(ts2['y'][:])
+
+    XW, YW = np.meshgrid(xwn, ywn)
+    xwint = XW.flatten()
+    ywint = YW.flatten()
+
     # put each timestep into netcdf
     j = 0
     for idf, f in enumerate(d):
@@ -88,12 +104,23 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start):
         #tmpdate = dt.replace(tzinfo=pytz.timezone('UTC'))
 
         # get the data
-        data = np.loadtxt(f, skiprows=6)
+        print(f)
+
+        data = np.flipud(np.loadtxt(f, skiprows=6))
+        dataint = data.flatten()
+
+        g = griddata((xwint, ywint),
+                     dataint,
+                     (XX, YY),
+                     method='linear')
+
         # manipulate the data
         ############# NEED #######
         # Manipulate data to match SMRF grid if needed
         ######### END NEED #######
-        data = data[:-1,:-1] * 0.447 #convert?
+        #data = data[:-1,:-1] * 0.447 #convert?
+        # g = np.flipud(g)*0.447 #  convert?
+        g = g * 0.447
 
         # assign times
         nctimes = ds.variables['time']
@@ -101,8 +128,8 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start):
                           nctimes.calendar)
         # put in dataset
         ds.variables['time'][idf] = nct
-        ds.variables['wind_speed'][idf, :] = data*mask
-        ds.setncattr_string('last modified', datetime.now())
+        ds.variables['wind_speed'][idf, :] = g
+        #ds.setncattr_string('last modified', datetime.now())
         # sync up the dataset
         ds.sync()
 

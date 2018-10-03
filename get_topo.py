@@ -28,6 +28,26 @@ def get_topo_stats(fp, filetype='netcdf'):
         ts['y'] = y
         ds.close()
 
+    elif filetype == 'ascii':
+        header = {}
+        ff = open(fp, 'r')
+        for idl, line in enumerate(ff):
+            tmp_line = line.strip().split()
+            header[tmp_line[0]] = tmp_line[1]
+            if idl >= 5:
+                break
+        ff.close()
+
+        ts['nx'] = int(header['ncols'])
+        ts['ny'] = int(header['nrows'])
+        ts['du'] = float(header['cellsize'])
+        ts['dv'] = float(header['cellsize'])
+        ts['u'] = float(header['yllcorner'])
+        ts['v'] = float(header['xllcorner'])
+
+        ts['x'] = ts['v'] + ts['dv']*np.arange(ts['nx'])
+        ts['y'] = ts['u'] + ts['du']*np.arange(ts['ny'])
+
     else:
         raise IOError('Not a supported topo filetype')
 
