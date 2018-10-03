@@ -31,7 +31,7 @@ RUN apt-get update -y \
     libyaml-dev \
     libfreetype6-dev \
     libpng-dev \
-    libhdf5-serial-dev \
+    # libhdf5-serial-dev \
     python3-dev \
     python3-pip \
     python3-tk \
@@ -63,18 +63,22 @@ ENV PREFIX=/usr/local
 ENV POPPLER="poppler-0.23.4"
 ENV PROJ="proj-4.8.0"
 ENV GDAL="gdal-2.0.3"
-ENV WNSCRIPTS="/packages/wind/windninja/scripts"
+ENV WNSCRIPTS="/packages/wind/depends"
 
 # get code and packages
 Run cd /packages/wind \
     && git clone https://github.com/firelab/windninja.git \
-    && cd /packages/wind/windninja/scripts \
+    && mkdir $WNSCRIPTS \
+    && cd $WNSCRIPTS \
     && wget http://poppler.freedesktop.org/$POPPLER.tar.xz \
     && tar -xvf $POPPLER.tar.xz \
+    && rm $POPPLER.tar.xz \
     && wget http://download.osgeo.org/proj/$PROJ.tar.gz \
     && tar xvfz $PROJ.tar.gz \
+    && rm $PROJ.tar.gz \
     && wget http://download.osgeo.org/gdal/2.0.3/$GDAL.tar.gz \
-    && tar -xvf $GDAL.tar.gz
+    && tar -xvf $GDAL.tar.gz \
+    && rm $GDAL.tar.gz
 
 # build packages
 RUN cd $WNSCRIPTS/$POPPLER \
@@ -86,13 +90,15 @@ RUN cd $WNSCRIPTS/$PROJ \
     &&./configure --prefix=$PREFIX \
     && make clean \
     && make \
-    && make install \
+    && make install -j 8 \
+    && make clean \
     && cp $PREFIX/include/proj_api.h $PREFIX/lib
 
 RUN cd $WNSCRIPTS/$GDAL \
     &&./configure --prefix=$PREFIX --with-poppler=$PREFIX \
     && make -j 8 \
-    && make install \
+    && make install -j 8 \
+    && make clean \
     && ldconfig
 
 # build windninja
@@ -135,6 +141,15 @@ RUN mkdir /data \
     # && python3 setup.py build_ext --inplace \
     # && python3 setup.py install
 
+
+####################################################
+# clean up
+####################################################
+RUN apt-get clean \
+    && apt remove -y wget \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf $WNSCRIPTS
 
 
 ENTRYPOINT ["/code/katana/run_katana"]

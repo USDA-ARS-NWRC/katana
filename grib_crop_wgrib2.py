@@ -117,7 +117,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
         counter = 0
         # get files
         hrrr_dir = os.path.join(directory,
-                                'hrrr.{}/hrrr.t*.grib2'.format(dt.strftime(fmt)))
+                                'hrrr.{}/hrrr.t*f00.grib2'.format(dt.strftime(fmt)))
         fps = glob.glob(hrrr_dir)
 
         # write and read new netcdfs

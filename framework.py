@@ -116,7 +116,13 @@ class Katana():
 
         print('Running {}'.format(action))
         s = Popen(action, shell=True,stdout=PIPE)
-        s.wait()
+
+        while True:
+            line = s.stdout.readline()
+            print(line)
+            if not line:
+                break
+        #s.wait()
 
     def run_katana(self):
         """

@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+   katana:
+      image: usdaarsnwrc/katana:latest
+      volumes:
+        - /home/micahsandusky/test_windninja/tmp_hrrr:/data/input
+        - /home/micahsandusky/test_windninja/data:/data/output
+      #user: ${CURRENT_UID}
