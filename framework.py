@@ -33,7 +33,7 @@ class Katana():
 
     def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
                  end_date, wy_start, directory, out_dir, wn_topo,
-                 wn_topo_prj, wn_cfg, nthreads):
+                 wn_topo_prj, wn_cfg, nthreads, dxy):
 
 
         self.fp_dem = fp_dem
@@ -65,7 +65,7 @@ class Katana():
         self.ts = get_topo_stats(self.fp_dem)
         self.x1 = self.ts['x']
         self.y1 = self.ts['y']
-        self.dxy = np.abs(self.ts['dv'])
+        self.dxy = dxy
 
     def make_wn_cfg(self, out_dir, wn_topo, num_hours):
         """
@@ -142,15 +142,20 @@ class Katana():
         # make netcdf for each day from ascii outputs
         for idd, day in enumerate(date_list):
             out_dir_day = os.path.join(self.out_dir,
+                                       'data{}'.format(day.strftime(self.fmt_date)))
+            out_dir_wn = os.path.join(out_dir_day,
                                        'hrrr.{}'.format(day.strftime(self.fmt_date)))
+            if not os.path.isdir(out_dir_day):
+                os.makedirs(out_dir_day)
+
             # run WindNinja_cli
-            self.make_wn_cfg(out_dir_day, self.wn_topo, num_list[idd])
+            self.make_wn_cfg(out_dir_wn, self.wn_topo, num_list[idd])
 
             self.run_wind_ninja()
 
             # convert that day to netcdf
-            # convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
-            #                    self.wy_start)
+            convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
+                               self.wy_start, dxy=self.dxy)
 
 
     def __enter__(self):

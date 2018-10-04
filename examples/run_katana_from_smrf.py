@@ -26,6 +26,7 @@ wn_topo = os.path.join(directory, 'tuol.asc')
 wn_topo_prj = os.path.join(directory, 'tuol.prj')
 wn_cfg = os.path.join(directory, 'windninjarun.cfg')
 nthreads = 8
+dxy = 200
 
 # smrf params
 fp_dem = os.path.join(directory, 'tuolx_50m_topo.nc')
@@ -50,7 +51,7 @@ action = action.format(start_date.strftime(fmt),
 action += ' --input_directory {} --output_directory {}'.format(directory, out_dir)
 action += ' --wn_topo {} --wn_prj {} --wn_cfg {}'.format(wn_topo, wn_topo_prj, wn_cfg)
 action += ' --topo {} --zn_number {} --zn_letter {}'.format(fp_dem, zone_number, zone_letter)
-action += ' --buff {} --nthreads {}'.format(buff, nthreads)
+action += ' --buff {} --nthreads {} --dxy {}'.format(buff, nthreads, dxy)
 
 print('Running {}'.format(action))
 s = Popen(action, shell=True,stdout=PIPE)

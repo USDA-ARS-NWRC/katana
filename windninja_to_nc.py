@@ -23,7 +23,7 @@ def create_nc(ts, wy_start, out_dir):
     m['units'] = ['m/s']
     m['description'] = ['wind speed']
 
-    netcdfFile = os.path.join('./', 'wind_speed.nc')
+    netcdfFile = os.path.join(out_dir, 'wind_speed.nc')
     print(netcdfFile)
 
     dimensions = ('time', 'y', 'x')
@@ -63,6 +63,7 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start, dxy=None):
         ts:             get_topo_stats dictionary
         wn_prefix:      prefix for WindNinja output files
         wy_start:       start date for water year in question
+        dxy:            grid spacing of input file from WindNinja
 
     Returns:
 
@@ -85,7 +86,7 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start, dxy=None):
     # get wind ninja topo stats
     ts2 = get_topo_stats(d[0], filetype='ascii')
     xwn = ts2['x'][:]
-    ywn = np.flipud(ts2['y'][:])
+    ywn = ts2['y'][:]
 
     XW, YW = np.meshgrid(xwn, ywn)
     xwint = XW.flatten()
@@ -106,7 +107,7 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start, dxy=None):
         # get the data
         print(f)
 
-        data = np.flipud(np.loadtxt(f, skiprows=6))
+        data = np.loadtxt(f, skiprows=6)
         dataint = data.flatten()
 
         g = griddata((xwint, ywint),
@@ -114,13 +115,11 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start, dxy=None):
                      (XX, YY),
                      method='linear')
 
-        # manipulate the data
         ############# NEED #######
-        # Manipulate data to match SMRF grid if needed
+        # Do we convert? power law to 5m?
         ######### END NEED #######
-        #data = data[:-1,:-1] * 0.447 #convert?
-        # g = np.flipud(g)*0.447 #  convert?
-        g = g * 0.447
+        g = np.flipud(g)*0.447 #  convert?
+        # g = g * 0.447 #  convert?
 
         # assign times
         nctimes = ds.variables['time']

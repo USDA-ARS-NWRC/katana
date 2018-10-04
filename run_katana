@@ -70,6 +70,9 @@ def run():
     p.add_argument('-nt','--nthreads', required=False, default=1,
                     help='number of WindNinja threads')
 
+    p.add_argument('-d','--dxy', required=False, default=100,
+                    help='grid spacing of WindNinja simulation')
+
 
     args = p.parse_args()
 
@@ -86,13 +89,14 @@ def run():
     wn_topo_prj = os.path.abspath(args.wn_prj)
     wn_cfg = os.path.abspath(args.wn_cfg)
     nthreads = args.nthreads
+    dxy = float(args.dxy)
 
     # start_date = args.....
 
     with Katana(fp_dem, zone_letter, zone_number, buff,
                 start_date, end_date,
                 wy_start, directory, out_dir, wn_topo,
-                wn_topo_prj, wn_cfg, nthreads) as k:
+                wn_topo_prj, wn_cfg, nthreads, dxy) as k:
         k.run_katana()
 
 if __name__ == '__main__':
