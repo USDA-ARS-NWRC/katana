@@ -83,7 +83,7 @@ class Katana():
                     'num_threads'                     : self.nthreads,
                     'elevation_file'                  : os.path.abspath(wn_topo),
                     'initialization_method'           : 'wxModelInitialization',
-                    'time_zone'                       : 'America/Denver',
+                    'time_zone'                       : 'Europe/London',
                     'forecast_filename'               : os.path.abspath(out_dir),
                     'forecast_duration'               : num_hours,
                     'output_wind_height'              : 5.0,
@@ -92,7 +92,7 @@ class Katana():
                     'diurnal_winds'                   : True,
                     'mesh_resolution'                 : self.dxy,
                     'units_mesh_resolution'           : 'm',
-                    'write_goog_output'               : True,
+                    'write_goog_output'               : False,
                     'write_shapefile_output'          : False,
                     'write_ascii_output'              : True,
                     'write_farsite_atm'               : False,
@@ -153,9 +153,9 @@ class Katana():
 
                 self.run_wind_ninja()
 
-                # convert that day to netcdf
-                convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
-                                   self.wy_start, dxy=self.dxy)
+                # # convert that day to netcdf
+                # convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
+                #                    self.wy_start, dxy=self.dxy)
 
 
     def __enter__(self):
