@@ -8,3 +8,4 @@ pandas==0.22.0
 matplotlib
 argparse
 datetime
+scipy

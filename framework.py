@@ -58,7 +58,7 @@ class Katana():
         self.wn_topo_prj = wn_topo_prj
         self.wn_cfg = os.path.abspath(wn_cfg)
         # prefix that wind ninja will use in the file naming convention
-        self.wn_prefix = os.path.splitext(os.path.basename(self.wn_topo))
+        self.wn_prefix = os.path.splitext(os.path.basename(self.wn_topo))[0]
         self.nthreads = nthreads
 
         # get info about model domain
@@ -137,25 +137,25 @@ class Katana():
                                               zone_number=self.zone_number,
                                               buff=self.buff)
 
-        print(num_list)
         print(date_list)
-        # make netcdf for each day from ascii outputs
+        # make config, run wind ninja, make netcdf
         for idd, day in enumerate(date_list):
-            out_dir_day = os.path.join(self.out_dir,
-                                       'data{}'.format(day.strftime(self.fmt_date)))
-            out_dir_wn = os.path.join(out_dir_day,
-                                       'hrrr.{}'.format(day.strftime(self.fmt_date)))
-            if not os.path.isdir(out_dir_day):
-                os.makedirs(out_dir_day)
+            if num_list[idd] > 0:
+                out_dir_day = os.path.join(self.out_dir,
+                                           'data{}'.format(day.strftime(self.fmt_date)))
+                out_dir_wn = os.path.join(out_dir_day,
+                                           'hrrr.{}'.format(day.strftime(self.fmt_date)))
+                if not os.path.isdir(out_dir_day):
+                    os.makedirs(out_dir_day)
 
-            # run WindNinja_cli
-            self.make_wn_cfg(out_dir_wn, self.wn_topo, num_list[idd])
+                # run WindNinja_cli
+                self.make_wn_cfg(out_dir_wn, self.wn_topo, num_list[idd])
 
-            self.run_wind_ninja()
+                self.run_wind_ninja()
 
-            # convert that day to netcdf
-            convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
-                               self.wy_start, dxy=self.dxy)
+                # convert that day to netcdf
+                convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
+                                   self.wy_start, dxy=self.dxy)
 
 
     def __enter__(self):

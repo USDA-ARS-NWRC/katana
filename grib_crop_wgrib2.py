@@ -35,7 +35,9 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
     #fmt = '%Y%m%d-%H-%M'
     fmt1 = '%Y%m%d'
     fmt2 = '%H'
-    dir1 = os.path.join(out_dir, 'hrrr.{}'.format(file_dt.strftime(fmt1)))
+    dir1 = os.path.join(out_dir,
+                        'data{}'.format(file_dt.strftime(fmt1)),
+                        'hrrr.{}'.format(file_dt.strftime(fmt1)))
 
     # make file names
     tmp_grib = os.path.join(dir1, 'tmp.grib2')

@@ -77,7 +77,8 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start, dxy=None):
 
     XX, YY = np.meshgrid(ts['x'], ts['y'])
     # get the ascii files that need converted
-    search_key = os.path.join(out_dir_day,'{}_*_{:d}m_vel.asc'.format(wn_prefix, dxy))
+    search_key = os.path.join(out_dir_day,'{}_*_{:d}m_vel.asc'.format(wn_prefix, int(dxy)))
+    # print('searching for {}'.format(search_key))
     d = sorted(glob.glob(search_key), key=os.path.getmtime)
 
     # sort the files by date time
@@ -105,8 +106,6 @@ def convert_wind_ninja(out_dir_day, ts, wn_prefix, wy_start, dxy=None):
         #tmpdate = dt.replace(tzinfo=pytz.timezone('UTC'))
 
         # get the data
-        print(f)
-
         data = np.loadtxt(f, skiprows=6)
         dataint = data.flatten()
 

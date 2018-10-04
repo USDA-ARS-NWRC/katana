@@ -11,6 +11,7 @@ from subprocess import Popen, PIPE
 
 # docker paths
 image = 'usdaarsnwrc/katana:latest'
+
 directory = '/data/input'
 out_dir = '/data/output'
 directory1 = os.path.abspath('/home/micahsandusky/test_windninja/tmp_hrrr')
@@ -25,7 +26,7 @@ end_date = pd.to_datetime('2018-09-29 23:00')
 wn_topo = os.path.join(directory, 'tuol.asc')
 wn_topo_prj = os.path.join(directory, 'tuol.prj')
 wn_cfg = os.path.join(directory, 'windninjarun.cfg')
-nthreads = 8
+nthreads = 2
 dxy = 200
 
 # smrf params
