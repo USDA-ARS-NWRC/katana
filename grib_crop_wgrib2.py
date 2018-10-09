@@ -42,7 +42,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
     # make file names
     tmp_grib = os.path.join(dir1, 'tmp.grib2')
     fp_out = os.path.join(dir1,
-                          'hrrr.t00z.wrfsfcf{}.grib2'.format(file_dt.strftime(fmt2)))
+                          'hrrr.t{}z.wrfsfcf00.grib2'.format(file_dt.strftime(fmt2)))
 
     # create directory if needed
     if not os.path.isdir(dir1):
@@ -61,6 +61,55 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
     action = 'wgrib2 {} -small_grib {}:{} {}:{} {}'.format(fp_in, lonw, lone,
                                                            lats, latn, tmp_grib)
 
+    # run commands
+    print('\nRunning command {}'.format(action))
+    s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
+
+    while True:
+        line = s.stdout.readline().decode()
+        eline = s.stderr.readline().decode()
+
+        if not line:
+            break
+
+        # if it failed, find a different forecast hour
+        if "FATAL" in eline:
+            fatl = True
+            break
+        else:
+            fatl = False
+
+    # tryingn to find better grib file
+    if fatl:
+        del(s)
+        os.remove(tmp_grib)
+
+        print('\nsmall grib did not work, trying a forecast hour\n')
+
+        # find the directory name
+        hrrr_dir = os.path.dirname(fp_in)
+        fname = os.path.basename(fp_in)
+        # try:
+        # find the start and forecast hour
+        st_hr = int(fname[6:8]) - 1
+        fx_hr = int(fname[17:19]) + 1
+        # get a new file to open
+        new_file = os.path.join(hrrr_dir,
+                                'hrrr.t{:02d}z.wrfsfcf{:02d}.grib2'.format(st_hr, fx_hr))
+        action = 'wgrib2 {} -small_grib {}:{} {}:{} {}'.format(new_file, lonw, lone,
+                                                               lats, latn, tmp_grib)
+        print('\n\nTrying {}'.format(action))
+        s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
+        while True:
+            line = s.stdout.readline().decode()
+            eline = s.stderr.readline().decode()
+            if not line:
+                break
+
+            # if it failed, find a different forecast hour
+            if "FATAL" in eline:
+                raise ValueError('Cannot find decent grib file for {}'.format(file_dt))
+
     # call to grab correct variables
     action2 = "wgrib2 {} -match 'TMP:2 m|UGRD:10 m|VGRD:10 m|TCDC:' -GRIB {}"
     action2 = action2.format(tmp_grib,
@@ -68,14 +117,9 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
     # action2 = "wgrib2 {} -match '^(66|71|72|101):' -GRIB {}".format(tmp_grib,
     #                                                                 fp_out)
 
-    # run commands
-    print('Running command {}'.format(action))
-    s = Popen(action, shell=True,stdout=PIPE)
-    s.wait()
-
-    print('Running command {}'.format(action2))
-    s = Popen(action2, shell=True,stdout=PIPE)
-    s.wait()
+    print('\nRunning command {}'.format(action2))
+    s2 = Popen(action2, shell=True, stdout=PIPE)
+    s2.wait()
 
     os.remove(tmp_grib)
 
@@ -121,6 +165,9 @@ def create_new_grib(start_date, end_date, directory, out_dir,
         hrrr_dir = os.path.join(directory,
                                 'hrrr.{}/hrrr.t*f00.grib2'.format(dt.strftime(fmt)))
         fps = glob.glob(hrrr_dir)
+
+        if len(fps) == 0:
+            print('No matching files in {}'.format(hrrr_dir))
 
         # write and read new netcdfs
         for idf, fp in enumerate(fps):

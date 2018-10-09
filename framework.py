@@ -118,7 +118,7 @@ class Katana():
         s = Popen(action, shell=True,stdout=PIPE)
 
         while True:
-            line = s.stdout.readline()
+            line = s.stdout.readline().decode()
             print(line)
             if not line:
                 break
