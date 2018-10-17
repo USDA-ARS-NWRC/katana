@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from get_topo import get_topo_stats
+from katana.get_topo import get_topo_stats
 import utm
 #import subprocess
 from subprocess import Popen, PIPE

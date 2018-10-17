@@ -137,9 +137,9 @@ RUN mkdir /data \
     && python3 -m pip install --upgrade pip \
     && python3 -m pip install setuptools wheel \
     && python3 -m pip install -r /code/katana/requirements.txt \
-    && cp /code/katana/run_katana /usr/local/bin/
+    # && cp /code/katana/run_katana /usr/local/bin/
     # && python3 setup.py build_ext --inplace \
-    # && python3 setup.py install
+    && python3 setup.py install
 
 
 ####################################################

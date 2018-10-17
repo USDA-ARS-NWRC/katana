@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import os
 import pandas as pd
 import netCDF4 as nc
-from get_topo import get_topo_stats
+from katana.get_topo import get_topo_stats
 import glob
 import pytz
 from datetime import datetime

@@ -1,28 +1,12 @@
-"""
-Basic outline for reading in grib files, converting to cropped netCDF
-with the correct variables
-
-Notes:
-Initialize a smrf instance from the correct config to make all of this easier, follow the loadGrid.py outline
-
-Outline:
--make hrrr.HRRR class
--set variable map to desired one
--make up a boundary box (add half km, round to nearest half km on either side of domain?)
--call class.get_saved_data with correct boundary box, var map, and grib file location
--create netcdf of the files
--write data to netcdf (make sure units, variables match the ones in the grib file to start)
-
-"""
 import numpy as np
 import pandas as pd
 import os
 from subprocess import Popen, PIPE
 from datetime import datetime
 
-from get_topo import get_topo_stats, netcdf_dem_to_ascii
-from grib_crop_wgrib2 import create_new_grib
-from windninja_to_nc import convert_wind_ninja
+from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
+from katana.grib_crop_wgrib2 import create_new_grib
+from katana.windninja_to_nc import convert_wind_ninja
 
 
 class Katana():
