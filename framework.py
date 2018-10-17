@@ -20,7 +20,7 @@ import os
 from subprocess import Popen, PIPE
 from datetime import datetime
 
-from get_topo import get_topo_stats
+from get_topo import get_topo_stats, netcdf_dem_to_ascii
 from grib_crop_wgrib2 import create_new_grib
 from windninja_to_nc import convert_wind_ninja
 
@@ -32,9 +32,23 @@ class Katana():
     """
 
     def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
-                 end_date, wy_start, directory, out_dir, wn_topo,
-                 wn_topo_prj, wn_cfg, nthreads, dxy):
-
+                 end_date, wy_start, directory, out_dir,wn_cfg,
+                 nthreads, dxy):
+        """
+        Args:
+            fp_dem:         path to netcdf topo file used for smrf
+            zone_letter:    UTM zone letter (probably N)
+            zone_number:    UTM zone letter
+            buff:           WindNinja domain buffer desired (m)
+            start_date:     datetime object for start date
+            end_date:       datetime object for end date
+            wy_start:       datetime object for start of water year
+            directory:      directory containing HRRR grib2 files (directory/hrrr.<date>/hrrr*.grib2)
+            out_dir:        output directory where (out_dir/data<date>) will be written
+            wn_cfg:         file path where WindNinja config file will be stored
+            nthreads:       number of threads used to run WindNinja
+            dxy:            grid resolution for running WindNinja
+        """
 
         self.fp_dem = fp_dem
         self.zone_letter = zone_letter
@@ -54,12 +68,20 @@ class Katana():
         self.out_dir = out_dir
 
         # wind ninja inputs
-        self.wn_topo = wn_topo
-        self.wn_topo_prj = wn_topo_prj
         self.wn_cfg = os.path.abspath(wn_cfg)
         # prefix that wind ninja will use in the file naming convention
         self.wn_prefix = os.path.splitext(os.path.basename(self.wn_topo))[0]
         self.nthreads = nthreads
+
+        # write ascii dem for WindNinja
+        topo_add = '_windninja_topo'
+        dir_topo = os.path.dirname(self.fp_dem)
+        self.wn_topo = os.path.join(dir_topo,
+                                    self.wn_prefix+topo_add+'.asc')
+        self.wn_topo_prj = os.path.join(dir_topo,
+                                        self.wn_prefix+topo_add+'.prj')
+        # write new files
+        netcdf_dem_to_ascii(self.fp_dem, self.wn_topo)
 
         # get info about model domain
         self.ts = get_topo_stats(self.fp_dem)

@@ -52,3 +52,66 @@ def get_topo_stats(fp, filetype='netcdf'):
         raise IOError('Not a supported topo filetype')
 
     return ts
+
+def netcdf_dem_to_ascii(fp_nc, fp_asc):
+    """
+    Write a geotagged ascii dem for use with WindNinja
+
+    Args:
+        fp_nc:      file path to netcdf
+        fp_asc:     file path to output ascii file. The .prj file will have
+                    the same name
+
+    Returns:
+        Writes the ascii and prj files
+
+    """
+    # check if files exist first
+    if os.path.exist(fp_asc):
+        print('{} already exists, not creating again'.format(fp_asc))
+
+    # if not, make the files
+    else:
+        fillval = -9999
+        # get the prj file name
+        asc_dir = os.path.dirname(fp_asc)
+        bn = os.path.splitext(os.path.basename(fp_asc))[0]
+        fp_prj = os.path.join(asc_dir, bn+'.prj')
+
+        # get the netcdf
+        ds = Dataset(fp_nc, 'r')
+        dem = ds.variables['dem'][:]
+        # flip dem since we are now indexing from the bottom left
+        dem = np.flipud(dem)
+
+        # create header for projection
+        gridmap = ds.variables['dem'].grid_mapping
+        prj_head = ds.variables[gridmap].spatial_ref
+
+        # close the netcdf
+        ds.close()
+
+        # get the projection info
+        ts = get_topo_stats(fp_nc)
+
+        cell_size = np.abs(ts['dv'])
+        # write the header
+        asc_head = "ncols {}\nnrows {}\nxllcorner {}\nyllcorner {}\ncellsize {}\nNODATA_value {}"
+        asc_head = asc_head.format(ts['nx'], ts['ny'],
+                                   np.min(ts['x'])-cell_size/2.0,
+                                   np.min(ts['y'])-cell_size/2.0,
+                                   np.abs(ts['dv']),
+                                   fillval)
+
+
+        # prj_head = "Projection {}\nZone {}\nDatum {}\nZunits {}\nUnits {}\nSpheroid {}\nXshift {}\nYshift {}\nParamters"
+        # prj_head = prj_head.format('UTM', 11, 'NAD83', 'METERS', 'METERS', 'WGS84',
+        #                            0.0, 0.0)
+
+
+        # write files
+        np.savetxt(fp_asc, dem, header=asc_head, comments='')
+
+        # write prj
+        with open(fp_prj, 'w') as prj_file:
+            prj_file.write(prj_head)
