@@ -152,5 +152,6 @@ RUN apt-get clean \
     && rm -rf $WNSCRIPTS
 
 
-ENTRYPOINT ["/code/katana/run_katana"]
+#ENTRYPOINT ["/code/katana/run_katana"]
+ENTRYPOINT ["run_katana"]
 CMD ["/bin/bash"]

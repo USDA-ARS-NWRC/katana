@@ -54,7 +54,7 @@ class Katana():
         # wind ninja inputs
         self.wn_cfg = os.path.abspath(wn_cfg)
         # prefix that wind ninja will use in the file naming convention
-        self.wn_prefix = os.path.splitext(os.path.basename(self.wn_topo))[0]
+        self.wn_prefix = os.path.splitext(os.path.basename(self.fp_dem))[0]
         self.nthreads = nthreads
 
         # write ascii dem for WindNinja

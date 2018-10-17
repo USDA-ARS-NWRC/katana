@@ -67,7 +67,7 @@ def netcdf_dem_to_ascii(fp_nc, fp_asc):
 
     """
     # check if files exist first
-    if os.path.exist(fp_asc):
+    if os.path.exists(fp_asc):
         print('{} already exists, not creating again'.format(fp_asc))
 
     # if not, make the files
