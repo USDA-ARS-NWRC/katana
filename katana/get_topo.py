@@ -53,7 +53,7 @@ def get_topo_stats(fp, filetype='netcdf'):
 
     return ts
 
-def netcdf_dem_to_ascii(fp_nc, fp_asc):
+def netcdf_dem_to_ascii(fp_nc, fp_asc, logger):
     """
     Write a geotagged ascii dem for use with WindNinja
 
@@ -61,6 +61,7 @@ def netcdf_dem_to_ascii(fp_nc, fp_asc):
         fp_nc:      file path to netcdf
         fp_asc:     file path to output ascii file. The .prj file will have
                     the same name
+        logger:     instance of logger
 
     Returns:
         Writes the ascii and prj files
@@ -68,7 +69,7 @@ def netcdf_dem_to_ascii(fp_nc, fp_asc):
     """
     # check if files exist first
     if os.path.exists(fp_asc):
-        print('{} already exists, not creating again'.format(fp_asc))
+        logger.warning('{} already exists, not creating again'.format(fp_asc))
 
     # if not, make the files
     else:

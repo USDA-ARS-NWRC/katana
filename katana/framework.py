@@ -3,6 +3,8 @@ import pandas as pd
 import os
 from subprocess import Popen, PIPE
 from datetime import datetime
+import logging
+import coloredlogs
 
 from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
 from katana.grib_crop_wgrib2 import create_new_grib
@@ -17,7 +19,7 @@ class Katana():
 
     def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
                  end_date, wy_start, directory, out_dir,wn_cfg,
-                 nthreads, dxy):
+                 nthreads, dxy, loglevel, logfile):
         """
         Args:
             fp_dem:         path to netcdf topo file used for smrf
@@ -32,8 +34,13 @@ class Katana():
             wn_cfg:         file path where WindNinja config file will be stored
             nthreads:       number of threads used to run WindNinja
             dxy:            grid resolution for running WindNinja
+            loglevel:       level for logging info
+            logfile:        file where log will be stored
         """
 
+        ################################################
+        # Start parsing the arguments
+        ################################################
         self.fp_dem = fp_dem
         self.zone_letter = zone_letter
         self.zone_number = zone_number
@@ -51,6 +58,14 @@ class Katana():
         #out_dir = './sim_files_grib'
         self.out_dir = out_dir
 
+        ################################################
+        # Create logger
+        ################################################
+        self.create_log(loglevel, logfile)
+
+        ################################################
+        # Find WindNinja parameters
+        ################################################
         # wind ninja inputs
         self.wn_cfg = os.path.abspath(wn_cfg)
         # prefix that wind ninja will use in the file naming convention
@@ -65,13 +80,86 @@ class Katana():
         self.wn_topo_prj = os.path.join(dir_topo,
                                         self.wn_prefix+topo_add+'.prj')
         # write new files
-        netcdf_dem_to_ascii(self.fp_dem, self.wn_topo)
+        netcdf_dem_to_ascii(self.fp_dem, self.wn_topo, self._logger)
 
         # get info about model domain
         self.ts = get_topo_stats(self.fp_dem)
         self.x1 = self.ts['x']
         self.y1 = self.ts['y']
         self.dxy = dxy
+
+    def create_log(self, loglevel, logfile):
+        '''
+        Create logger and log file. If logfile is None, 
+        the logger will print to the screen with colored logs. 
+
+        Args:
+            loglevel:   level of information from logs (debug, info, etc)
+            logfile:    location of file where log will be written
+
+        Returns:
+            creates a logger
+        '''
+
+        level_styles = {'info': {'color': 'white'},
+                        'notice': {'color': 'magenta'},
+                        'verbose': {'color': 'blue'},
+                        'success': {'color': 'green', 'bold': True},
+                        'spam': {'color': 'green', 'faint': True},
+                        'critical': {'color': 'red', 'bold': True},
+                        'error': {'color': 'red'},
+                        'debug': {'color': 'green'},
+                        'warning': {'color': 'yellow'}}
+
+        field_styles =  {'hostname': {'color': 'magenta'},
+                         'programname': {'color': 'cyan'},
+                         'name': {'color': 'white'},
+                         'levelname': {'color': 'white', 'bold': True},
+                         'asctime': {'color': 'green'}}
+
+        # start logging
+        loglevel = loglevel.upper()
+
+        numeric_level = getattr(logging, loglevel, None)
+        if not isinstance(numeric_level, int):
+            raise ValueError('Invalid log level: %s' % loglevel)
+
+        fmt = '%(levelname)s:%(name)s:%(message)s'
+        if logfile is not None:
+            # let user know
+            print('Logging to file: {}'.format(logfile))
+
+            logging.basicConfig(filename=logfile,
+                                filemode='w',
+                                level=numeric_level,
+                                format=fmt)
+        else:
+            logging.basicConfig(level=numeric_level)
+            coloredlogs.install(level=numeric_level,
+                                fmt=fmt,
+                                level_styles=level_styles,
+                                field_styles=field_styles)
+
+        self._loglevel = numeric_level
+
+        self._logger = logging.getLogger(__name__)
+
+        # print title and mountains
+        # title, mountain = self.title()
+        # for line in mountain:
+        #     self._logger.info(line)
+        # for line in title:
+        #     self._logger.info(line)
+        # dump saved logs
+        # if len(self.tmp_log) > 0:
+        #     for l in self.tmp_log:
+        #         self._logger.info(l)
+        # if len(self.tmp_warn) > 0:
+        #     for l in self.tmp_warn:
+        #         self._logger.warning(l)
+        # if len(self.tmp_err) > 0:
+        #     for l in self.tmp_err:
+        #         self._logger.error(l)
 
     def make_wn_cfg(self, out_dir, wn_topo, num_hours):
         """
@@ -112,7 +200,7 @@ class Katana():
                     }
 
         # write each line to config
-        print('Creating file {}'.format(self.wn_cfg))
+        self._logger.info('Creating file {}'.format(self.wn_cfg))
         with open(self.wn_cfg, 'w') as f:
             for k,v in base_cfg.items():
                 f.write('{} = {}\n'.format(k,v))
@@ -124,12 +212,12 @@ class Katana():
         """
         action = 'WindNinja_cli {}'.format(self.wn_cfg)
 
-        print('Running {}'.format(action))
+        self._logger.info('Running {}'.format(action))
         s = Popen(action, shell=True,stdout=PIPE)
 
         while True:
             line = s.stdout.readline().decode()
-            print(line)
+            self._logger.debug(line)
             if not line:
                 break
         #s.wait()
@@ -142,7 +230,7 @@ class Katana():
         # create the new grib files
         date_list, num_list = create_new_grib(self.start_date, self.end_date,
                                               self.directory, self.out_dir,
-                                              self.x1, self.y1,
+                                              self.x1, self.y1, self._logger,
                                               zone_letter=self.zone_letter,
                                               zone_number=self.zone_number,
                                               buff=self.buff)
@@ -162,11 +250,6 @@ class Katana():
                 self.make_wn_cfg(out_dir_wn, self.wn_topo, num_list[idd])
 
                 self.run_wind_ninja()
-
-                # # convert that day to netcdf
-                # convert_wind_ninja(out_dir_day, self.ts, self.wn_prefix,
-                #                    self.wy_start, dxy=self.dxy)
-
 
     def __enter__(self):
         return self

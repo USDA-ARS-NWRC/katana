@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from katana.get_topo import get_topo_stats
 import utm
-#import subprocess
 from subprocess import Popen, PIPE
 import os
 import pandas as pd
@@ -11,13 +10,8 @@ import netCDF4 as nc
 import glob
 
 
-# problem
-"""
-Have to follow naming convention for hrrr, so run daily
-"""
-
-def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
-                  zone_letter='N', zone_number=11):
+def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger, 
+                  buff=1500, zone_letter='N', zone_number=11):
     """
     Function to write 4 bands from grib2 to cropped grib2
 
@@ -27,6 +21,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
             file_dt: time stamp of file
             x: x coords in utm of new domain
             y: y coords in utm of new domain
+            logger: instance of logger
             buff: buffer in meters for buffering domain
             zone_letter: UTM zone letter (N)
             zone_number: UTM zone number
@@ -62,7 +57,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
                                                            lats, latn, tmp_grib)
 
     # run commands
-    print('\nRunning command {}'.format(action))
+    logger.info('\nRunning command {}'.format(action))
     s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
 
     while True:
@@ -84,7 +79,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
         del(s)
         os.remove(tmp_grib)
 
-        print('\nsmall grib did not work, trying a forecast hour\n')
+        logger.warning('\nsmall grib did not work, trying a forecast hour\n')
 
         # find the directory name
         hrrr_dir = os.path.dirname(fp_in)
@@ -98,7 +93,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
                                 'hrrr.t{:02d}z.wrfsfcf{:02d}.grib2'.format(st_hr, fx_hr))
         action = 'wgrib2 {} -small_grib {}:{} {}:{} {}'.format(new_file, lonw, lone,
                                                                lats, latn, tmp_grib)
-        print('\n\nTrying {}'.format(action))
+        logger.debug('\n\nTrying {}'.format(action))
         s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
         while True:
             line = s.stdout.readline().decode()
@@ -117,7 +112,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
     # action2 = "wgrib2 {} -match '^(66|71|72|101):' -GRIB {}".format(tmp_grib,
     #                                                                 fp_out)
 
-    print('\nRunning command {}'.format(action2))
+    logger.info('\nRunning command {}'.format(action2))
     s2 = Popen(action2, shell=True, stdout=PIPE)
     s2.wait()
 
@@ -125,7 +120,8 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, buff=1500,
 
 
 def create_new_grib(start_date, end_date, directory, out_dir,
-                    x1, y1, zone_letter='N', zone_number=11, buff=6000):
+                    x1, y1, logger,
+                    zone_letter='N', zone_number=11, buff=6000):
     """
     Function to iterate through the dates and create new, cropped grib files
     needed to run WindNinja
@@ -137,6 +133,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
         out_dir:        output directory for new hrrr files
         x1:             UTM X coords for dem as numpy array
         y1:             UTM Y coords for dem as numpy array
+        logger:         Instance of logger
         zone_letter:    UTM zone letter for dem
         zone_number:    UTM zone number for dem
         buff:           buffer to add onto dem domain in meters
@@ -167,7 +164,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
         fps = glob.glob(hrrr_dir)
 
         if len(fps) == 0:
-            print('No matching files in {}'.format(hrrr_dir))
+            logger.warning('No matching files in {}'.format(hrrr_dir))
 
         # write and read new netcdfs
         for idf, fp in enumerate(fps):
@@ -179,14 +176,14 @@ def create_new_grib(start_date, end_date, directory, out_dir,
             # check if we are in the date range
             if file_time >= start_date and file_time <= end_date:
                 # convert grib to temp nc
-                grib_to_sgrib(fp, out_dir, file_time, x1, y1, buff=buff,
+                grib_to_sgrib(fp, out_dir, file_time, x1, y1, logger, buff=buff,
                               zone_letter=zone_letter, zone_number=zone_number)
 
                 # track hours per day
                 counter += 1
 
             else:
-                print('{} is not in date range'.format(file_time))
+                logger.warning('{} is not in date range and will not be included'.format(file_time))
 
         num_list.append(counter)
 

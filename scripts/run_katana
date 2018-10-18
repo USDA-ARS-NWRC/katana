@@ -62,6 +62,13 @@ def run():
 
     p.add_argument('-d','--dxy', required=False, default=100,
                     help='grid spacing of WindNinja simulation')
+    
+    p.add_argument('-ll', '--loglevel', required=False, defualt='debug',
+                   help='level of info printed out in the logs')
+
+    p.add_argument('-lf', '--logfile', required=False, default=None,
+                   help='file where log will be written. default is None \
+                        and will print to screen')
 
 
     args = p.parse_args()
@@ -78,13 +85,18 @@ def run():
     wn_cfg = os.path.abspath(args.wn_cfg)
     nthreads = args.nthreads
     dxy = float(args.dxy)
+    loglevel = args.loglevel
+    logfile = args.logfile
+    # if we have a log file, set the absolute path
+    if logfile is not None:
+            logfile = os.path.abspath(logfile)
 
-    # start_date = args.....
-
+    # run the katana framework
     with Katana(fp_dem, zone_letter, zone_number, buff,
                 start_date, end_date,
                 wy_start, directory, out_dir,
-                wn_cfg, nthreads, dxy) as k:
+                wn_cfg, nthreads, dxy, loglevel,
+                logfile) as k:
         k.run_katana()
 
 if __name__ == '__main__':
