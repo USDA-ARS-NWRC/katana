@@ -57,7 +57,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
                                                            lats, latn, tmp_grib)
 
     # run commands
-    logger.info('\nRunning command {}'.format(action))
+    logger.debug('\nRunning command {}'.format(action))
     s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
 
     while True:
@@ -112,7 +112,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
     # action2 = "wgrib2 {} -match '^(66|71|72|101):' -GRIB {}".format(tmp_grib,
     #                                                                 fp_out)
 
-    logger.info('\nRunning command {}'.format(action2))
+    logger.debug('\nRunning command {}'.format(action2))
     s2 = Popen(action2, shell=True, stdout=PIPE)
     s2.wait()
 

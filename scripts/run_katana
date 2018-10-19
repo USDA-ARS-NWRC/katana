@@ -15,15 +15,7 @@ def run():
     katana is a command line program designed to take a config file. This
     will be fed to the run_katana function within framework.
     '''
-    # # Path for Docker use only
-    # configFile = '/code/awsm/test_data/RME_run/docker_pysnobal.ini'
-    #
-    # if not os.path.isfile(configFile):
-    #     configFile = './test_data/RME_run/config_pysnobal.ini'
-    #
-    # if len(sys.argv) > 1:
-    #     configFile = sys.argv[1]
-
+    
     # Parse arguments
     p = argparse.ArgumentParser(description='Run Katana wind system.')
 
@@ -32,9 +24,6 @@ def run():
 
     p.add_argument('-ed','--end_date', required=True,
                     help="end date for run")
-
-    p.add_argument('-wys','--water_year_start', required=True,
-                    help="water year start date for the year")
 
     p.add_argument('-indir','--input_directory', required=True,
                     help="input directory where hrrr.<date> files are located")
@@ -63,7 +52,7 @@ def run():
     p.add_argument('-d','--dxy', required=False, default=100,
                     help='grid spacing of WindNinja simulation')
     
-    p.add_argument('-ll', '--loglevel', required=False, defualt='debug',
+    p.add_argument('-ll', '--loglevel', required=False, default='debug',
                    help='level of info printed out in the logs')
 
     p.add_argument('-lf', '--logfile', required=False, default=None,
@@ -79,23 +68,29 @@ def run():
     buff = int(args.buff)
     start_date = pd.to_datetime(args.start_date)
     end_date = pd.to_datetime(args.end_date)
-    wy_start = pd.to_datetime(args.water_year_start)
     directory = os.path.abspath(args.input_directory)
     out_dir = os.path.abspath(args.output_directory)
     wn_cfg = os.path.abspath(args.wn_cfg)
     nthreads = args.nthreads
     dxy = float(args.dxy)
     loglevel = args.loglevel
-    logfile = args.logfile
+    
     # if we have a log file, set the absolute path
-    if logfile is not None:
-            logfile = os.path.abspath(logfile)
+    logfile = args.logfile
+    if logfile is None:
+        pass
+    elif logfile == 'None':
+        logfile = None
+    else: 
+        logfile = os.path.abspath(logfile)
 
     # run the katana framework
-    with Katana(fp_dem, zone_letter, zone_number, buff,
+    with Katana(fp_dem, zone_letter,
+                zone_number, buff,
                 start_date, end_date,
-                wy_start, directory, out_dir,
-                wn_cfg, nthreads, dxy, loglevel,
+                directory, out_dir,
+                wn_cfg, nthreads,
+                dxy, loglevel,
                 logfile) as k:
         k.run_katana()
 

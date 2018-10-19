@@ -18,7 +18,7 @@ class Katana():
     """
 
     def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
-                 end_date, wy_start, directory, out_dir,wn_cfg,
+                 end_date, directory, out_dir,wn_cfg,
                  nthreads, dxy, loglevel, logfile):
         """
         Args:
@@ -28,7 +28,6 @@ class Katana():
             buff:           WindNinja domain buffer desired (m)
             start_date:     datetime object for start date
             end_date:       datetime object for end date
-            wy_start:       datetime object for start of water year
             directory:      directory containing HRRR grib2 files (directory/hrrr.<date>/hrrr*.grib2)
             out_dir:        output directory where (out_dir/data<date>) will be written
             wn_cfg:         file path where WindNinja config file will be stored
@@ -49,8 +48,6 @@ class Katana():
         # find start and end dates
         self.start_date = start_date
         self.end_date = end_date
-
-        self. wy_start = wy_start
 
         self.fmt_date = '%Y%m%d'
 
@@ -224,7 +221,7 @@ class Katana():
 
     def run_katana(self):
         """
-
+        Function to crop grib files, create WindNinja config, and run WindNinja
         """
 
         # create the new grib files
@@ -235,7 +232,7 @@ class Katana():
                                               zone_number=self.zone_number,
                                               buff=self.buff)
 
-        print(date_list)
+        self._logger.debug(date_list)
         # make config, run wind ninja, make netcdf
         for idd, day in enumerate(date_list):
             if num_list[idd] > 0:
@@ -259,4 +256,4 @@ class Katana():
         Provide some logging info about when AWSM was closed
         """
 
-        print('Katana closed --> %s' % datetime.now())
+        self._logger.info('Katana closed --> %s' % datetime.now())
