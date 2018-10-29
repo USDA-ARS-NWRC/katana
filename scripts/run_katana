@@ -49,6 +49,9 @@ def run():
     p.add_argument('-nt','--nthreads', required=False, default=1,
                     help='number of WindNinja threads')
 
+    p.add_argument('-nt_w', '--nthreads_w', required=False, default=1,
+                    help='number of threads for wgrib2 commands')
+
     p.add_argument('-d','--dxy', required=False, default=100,
                     help='grid spacing of WindNinja simulation')
     
@@ -71,7 +74,8 @@ def run():
     directory = os.path.abspath(args.input_directory)
     out_dir = os.path.abspath(args.output_directory)
     wn_cfg = os.path.abspath(args.wn_cfg)
-    nthreads = args.nthreads
+    nthreads = int(args.nthreads)
+    nthreads_w = int(args.nthreads_w)
     dxy = float(args.dxy)
     loglevel = args.loglevel
     
@@ -90,6 +94,7 @@ def run():
                 start_date, end_date,
                 directory, out_dir,
                 wn_cfg, nthreads,
+                nthreads_w,
                 dxy, loglevel,
                 logfile) as k:
         k.run_katana()

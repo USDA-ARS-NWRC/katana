@@ -11,8 +11,8 @@ from subprocess import Popen, PIPE
 
 # docker paths
 # image = 'usdaarsnwrc/katana:latest'
-image = 'usdaarsnwrc/katana:devel'
-# image = 'katana'
+# image = 'usdaarsnwrc/katana:devel'
+image = 'katana'
 
 
 topo_dir = '/data/topo'
@@ -35,6 +35,7 @@ end_date = pd.to_datetime('2018-09-20 03:00')
 # wn_topo_prj = os.path.join(topo_dir, 'tuol.prj')
 wn_cfg = os.path.join(out_dir, 'windninjarun.cfg')
 nthreads = 2
+nthreads_w = 1
 dxy = 400
 
 # smrf params
@@ -63,7 +64,7 @@ action = action.format(image,
 action += ' --input_directory {} --output_directory {}'.format(directory, out_dir)
 action += ' --wn_cfg {}'.format(wn_cfg)
 action += ' --topo {} --zn_number {} --zn_letter {}'.format(fp_dem, zone_number, zone_letter)
-action += ' --buff {} --nthreads {} --dxy {}'.format(buff, nthreads, dxy)
+action += ' --buff {} --nthreads {} --nthreads_w {} --dxy {}'.format(buff, nthreads, nthreads_w, dxy)
 action += ' --loglevel {} --logfile {}'.format(loglevel, logfile)
 
 print('Running {}'.format(action))

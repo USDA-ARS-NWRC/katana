@@ -11,7 +11,8 @@ import glob
 
 
 def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger, 
-                  buff=1500, zone_letter='N', zone_number=11):
+                  buff=1500, zone_letter='N', zone_number=11,
+                  nthreads_w=1):
     """
     Function to write 4 bands from grib2 to cropped grib2
 
@@ -25,6 +26,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
             buff: buffer in meters for buffering domain
             zone_letter: UTM zone letter (N)
             zone_number: UTM zone number
+            nthreads_w:  number of threads for wgrib2 commands
     """
     # date format for files
     #fmt = '%Y%m%d-%H-%M'
@@ -54,8 +56,9 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
     lone = ur[1]
 
     # call to crop grid
-    action = 'wgrib2 {} -small_grib {}:{} {}:{} {}'.format(fp_in, lonw, lone,
-                                                           lats, latn, tmp_grib)
+    action = 'wgrib2 {} -ncpu {} -small_grib {}:{} {}:{} {}'.format(fp_in, nthreads_w,
+                                                                    lonw, lone,
+                                                                    lats, latn, tmp_grib)
 
     # run commands
     logger.debug('\nRunning command {}'.format(action))
@@ -92,8 +95,9 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
         # get a new file to open
         new_file = os.path.join(hrrr_dir,
                                 'hrrr.t{:02d}z.wrfsfcf{:02d}.grib2'.format(st_hr, fx_hr))
-        action = 'wgrib2 {} -small_grib {}:{} {}:{} {}'.format(new_file, lonw, lone,
-                                                               lats, latn, tmp_grib)
+        action = 'wgrib2 {} -ncpu {} -small_grib {}:{} {}:{} {}'.format(new_file, nthreads_w,
+                                                                        lonw, lone,
+                                                                        lats, latn, tmp_grib)
         logger.debug('\n\nTrying {}'.format(action))
         s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
         while True:
@@ -107,8 +111,9 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
                 raise ValueError('Cannot find decent grib file for {}'.format(file_dt))
 
     # call to grab correct variables
-    action2 = "wgrib2 {} -match 'TMP:2 m|UGRD:10 m|VGRD:10 m|TCDC:' -GRIB {}"
+    action2 = "wgrib2 {} -ncpu {} -match 'TMP:2 m|UGRD:10 m|VGRD:10 m|TCDC:' -GRIB {}"
     action2 = action2.format(tmp_grib,
+                             nthreads_w,
                              fp_out)
     # action2 = "wgrib2 {} -match '^(66|71|72|101):' -GRIB {}".format(tmp_grib,
     #                                                                 fp_out)
@@ -122,7 +127,8 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
 
 def create_new_grib(start_date, end_date, directory, out_dir,
                     x1, y1, logger,
-                    zone_letter='N', zone_number=11, buff=6000):
+                    zone_letter='N', zone_number=11, buff=6000,
+                    nthreads_w=1):
     """
     Function to iterate through the dates and create new, cropped grib files
     needed to run WindNinja
@@ -138,6 +144,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
         zone_letter:    UTM zone letter for dem
         zone_number:    UTM zone number for dem
         buff:           buffer to add onto dem domain in meters
+        nthreads_w:     number of threads for wgrib2 commands
 
     Returns:
         date_list:      list of datetime days that are converted
@@ -178,7 +185,8 @@ def create_new_grib(start_date, end_date, directory, out_dir,
             if file_time >= start_date and file_time <= end_date:
                 # convert grib to temp nc
                 grib_to_sgrib(fp, out_dir, file_time, x1, y1, logger, buff=buff,
-                              zone_letter=zone_letter, zone_number=zone_number)
+                              zone_letter=zone_letter, zone_number=zone_number,
+                              nthreads_w=nthreads_w)
 
                 # track hours per day
                 counter += 1

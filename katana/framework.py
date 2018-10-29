@@ -19,7 +19,7 @@ class Katana():
 
     def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
                  end_date, directory, out_dir,wn_cfg,
-                 nthreads, dxy, loglevel, logfile):
+                 nthreads, nthreads_w, dxy, loglevel, logfile):
         """
         Args:
             fp_dem:         path to netcdf topo file used for smrf
@@ -32,6 +32,7 @@ class Katana():
             out_dir:        output directory where (out_dir/data<date>) will be written
             wn_cfg:         file path where WindNinja config file will be stored
             nthreads:       number of threads used to run WindNinja
+            nthreads_w:     number of threads used for wgrib2 commands
             dxy:            grid resolution for running WindNinja
             loglevel:       level for logging info
             logfile:        file where log will be stored
@@ -54,6 +55,8 @@ class Katana():
         self.directory = directory
         #out_dir = './sim_files_grib'
         self.out_dir = out_dir
+
+        self.nthreads_w = nthreads_w
 
         ################################################
         # Create logger
@@ -230,7 +233,8 @@ class Katana():
                                               self.x1, self.y1, self._logger,
                                               zone_letter=self.zone_letter,
                                               zone_number=self.zone_number,
-                                              buff=self.buff)
+                                              buff=self.buff,
+                                              nthreads_w=self.nthreads_w)
 
         self._logger.debug(date_list)
         # make config, run wind ninja, make netcdf
