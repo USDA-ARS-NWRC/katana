@@ -237,7 +237,8 @@ class Katana():
         for idd, day in enumerate(date_list):
             if num_list[idd] > 0:
                 out_dir_day = os.path.join(self.out_dir,
-                                           'data{}'.format(day.strftime(self.fmt_date)))
+                                           'data{}'.format(day.strftime(self.fmt_date))
+                                           , 'wind_ninja_data')
                 out_dir_wn = os.path.join(out_dir_day,
                                            'hrrr.{}'.format(day.strftime(self.fmt_date)))
                 if not os.path.isdir(out_dir_day):
