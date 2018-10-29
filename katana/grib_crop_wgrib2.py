@@ -32,6 +32,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
     fmt2 = '%H'
     dir1 = os.path.join(out_dir,
                         'data{}'.format(file_dt.strftime(fmt1)),
+                        'wind_ninja_data',
                         'hrrr.{}'.format(file_dt.strftime(fmt1)))
 
     # make file names

@@ -38,7 +38,7 @@ nthreads = 2
 dxy = 400
 
 # smrf params
-fp_dem = os.path.join(topo_dir, 'topo_tuol_2019.nc')
+fp_dem = os.path.join(topo_dir, 'tuol_topo_2019.nc')
 zone_letter = 'N'
 zone_number = 11
 
