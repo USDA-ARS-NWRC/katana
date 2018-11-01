@@ -177,7 +177,7 @@ class Katana():
                     'num_threads'                     : self.nthreads,
                     'elevation_file'                  : os.path.abspath(wn_topo),
                     'initialization_method'           : 'wxModelInitialization',
-                    'time_zone'                       : 'Europe/London',
+                    'time_zone'                       : 'Atlantic/Reykjavik',
                     'forecast_filename'               : os.path.abspath(out_dir),
                     'forecast_duration'               : num_hours,
                     'output_wind_height'              : 5.0,
