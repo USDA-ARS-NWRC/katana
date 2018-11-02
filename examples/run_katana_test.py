@@ -50,6 +50,8 @@ logfile = os.path.join(out_dir, 'log_test.txt')
 #logfile = None
 loglevel = 'debug'
 
+# did we already make the new gribs?
+have_gribs = False
 
 # make entrypoint take in the run_katana call
 action = ' docker run -v {}:{} -v {}:{} -v {}:{}'.format(directory1, directory,
@@ -66,6 +68,8 @@ action += ' --wn_cfg {}'.format(wn_cfg)
 action += ' --topo {} --zn_number {} --zn_letter {}'.format(fp_dem, zone_number, zone_letter)
 action += ' --buff {} --nthreads {} --nthreads_w {} --dxy {}'.format(buff, nthreads, nthreads_w, dxy)
 action += ' --loglevel {} --logfile {}'.format(loglevel, logfile)
+if have_gribs:
+    action += ' --have_gribs'
 
 print('Running {}'.format(action))
 s = Popen(action, shell=True,stdout=PIPE)

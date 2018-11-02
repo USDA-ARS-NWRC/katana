@@ -62,6 +62,10 @@ def run():
                    help='file where log will be written. default is None \
                         and will print to screen')
 
+    p.add_argument("-hg", "--have_gribs",
+                   action="store_true", default=False,
+                   help="don't make gribs because we did that already")
+
 
     args = p.parse_args()
 
@@ -78,6 +82,12 @@ def run():
     nthreads_w = int(args.nthreads_w)
     dxy = float(args.dxy)
     loglevel = args.loglevel
+    have_gribs = args.have_gribs
+
+    # if we want to skip redundant conversions we already did
+    make_new_gribs=True
+    if have_gribs:
+        make_new_gribs=False
     
     # if we have a log file, set the absolute path
     logfile = args.logfile
@@ -96,7 +106,7 @@ def run():
                 wn_cfg, nthreads,
                 nthreads_w,
                 dxy, loglevel,
-                logfile) as k:
+                logfile, make_new_gribs) as k:
         k.run_katana()
 
 if __name__ == '__main__':

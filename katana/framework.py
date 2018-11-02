@@ -19,7 +19,7 @@ class Katana():
 
     def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
                  end_date, directory, out_dir,wn_cfg,
-                 nthreads, nthreads_w, dxy, loglevel, logfile):
+                 nthreads, nthreads_w, dxy, loglevel, logfile, make_new_gribs):
         """
         Args:
             fp_dem:         path to netcdf topo file used for smrf
@@ -36,6 +36,7 @@ class Katana():
             dxy:            grid resolution for running WindNinja
             loglevel:       level for logging info
             logfile:        file where log will be stored
+            make_new_gribs: option to use existing gribs if this step has been completed
         """
 
         ################################################
@@ -53,10 +54,11 @@ class Katana():
         self.fmt_date = '%Y%m%d'
 
         self.directory = directory
-        #out_dir = './sim_files_grib'
         self.out_dir = out_dir
 
         self.nthreads_w = nthreads_w
+
+        self.make_new_gribs = make_new_gribs
 
         ################################################
         # Create logger
@@ -234,7 +236,8 @@ class Katana():
                                               zone_letter=self.zone_letter,
                                               zone_number=self.zone_number,
                                               buff=self.buff,
-                                              nthreads_w=self.nthreads_w)
+                                              nthreads_w=self.nthreads_w,
+                                              make_new_gribs=self.make_new_gribs)
 
         self._logger.debug(date_list)
         # make config, run wind ninja, make netcdf
