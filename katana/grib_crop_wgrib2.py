@@ -128,7 +128,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
 def create_new_grib(start_date, end_date, directory, out_dir,
                     x1, y1, logger,
                     zone_letter='N', zone_number=11, buff=6000,
-                    nthreads_w=1):
+                    nthreads_w=1, make_new_gribs=True):
     """
     Function to iterate through the dates and create new, cropped grib files
     needed to run WindNinja
@@ -145,6 +145,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
         zone_number:    UTM zone number for dem
         buff:           buffer to add onto dem domain in meters
         nthreads_w:     number of threads for wgrib2 commands
+        make_new_gribs: actually make the new gribs or just count how many we would make
 
     Returns:
         date_list:      list of datetime days that are converted
@@ -183,10 +184,12 @@ def create_new_grib(start_date, end_date, directory, out_dir,
 
             # check if we are in the date range
             if file_time >= start_date and file_time <= end_date:
-                # convert grib to temp nc
-                grib_to_sgrib(fp, out_dir, file_time, x1, y1, logger, buff=buff,
-                              zone_letter=zone_letter, zone_number=zone_number,
-                              nthreads_w=nthreads_w)
+                # option to cut down on already completed work
+                if make_new_gribs:
+                    # convert grib to smaller gribgs with only the needed variables for WindNinjaS
+                    grib_to_sgrib(fp, out_dir, file_time, x1, y1, logger, buff=buff,
+                                zone_letter=zone_letter, zone_number=zone_number,
+                                nthreads_w=nthreads_w)
 
                 # track hours per day
                 counter += 1

@@ -52,6 +52,9 @@ RUN apt-get update -y \
     # end windninja
     && cd /code \
     && curl -L ftp://ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz | tar xz \
+    && curl -L https://github.com/firelab/windninja/archive/3.5.0.tar.gz | tar xz \
+    && mv windninja-3.5.0 windninja \
+    && mv windninja /packages/wind \
     && rm -rf /var/lib/apt/lists/* \
     && apt remove -y curl \
     && apt autoremove -y
@@ -67,7 +70,6 @@ ENV WNSCRIPTS="/packages/wind/depends"
 
 # get code and packages
 Run cd /packages/wind \
-    && git clone https://github.com/firelab/windninja.git \
     && mkdir $WNSCRIPTS \
     && cd $WNSCRIPTS \
     && wget http://poppler.freedesktop.org/$POPPLER.tar.xz \
@@ -103,7 +105,7 @@ RUN cd $WNSCRIPTS/$GDAL \
 
 # build windninja
 Run mkdir /packages/wind/build \
-    && cd /packages/wind/build \
+    # && cd /packages/wind/build \
     && cd /packages/wind/windninja \
     && cmake -DNINJA_CLI=ON -DNINJAFOAM=OFF -DNINJA_QTGUI=OFF /packages/wind/windninja \
     && make \

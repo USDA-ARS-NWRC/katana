@@ -10,68 +10,54 @@ from subprocess import Popen, PIPE
 
 
 # docker paths
-# image = 'usdaarsnwrc/katana:latest'
-# image = 'usdaarsnwrc/katana:devel'
-image = 'katana'
-
-
-topo_dir = '/data/topo'
-topo_dir1 = os.path.abspath('/home/micahsandusky/Documents/Code/test_windninja/topo/')
-
+image = 'usdaarsnwrc/katana:latest'
 directory = '/data/input'
-directory1 = os.path.abspath('../tmp_hrrr')
-
 out_dir = '/data/output'
-out_dir1 = os.path.abspath('/home/micahsandusky/Documents/Code/test_windninja/data')
+topo_dir = '/data/topo'
+
+topo_dir1 = os.path.abspath('/home/micahsandusky/test_windninja/tmp_hrrr')
+directory1 = os.path.abspath('/data/snowpack/forecasts/hrrr')
+out_dir1 = os.path.abspath('/data/blizzard/tuolumne/devel/wy2017/test_windninja/data')
 
 # inputs
 buff = 6000
-start_date = pd.to_datetime('2018-09-20 00:00')
+start_date = pd.to_datetime('2016-10-12 00:00')
 #end_date = pd.to_datetime('2016-10-20 23:00')
-end_date = pd.to_datetime('2018-09-20 03:00')
+end_date = pd.to_datetime('2016-10-12 23:00')
 
 # wind ninja inputs
-# wn_topo = os.path.join(topo_dir, 'tuol.asc')
-# wn_topo_prj = os.path.join(topo_dir, 'tuol.prj')
+wn_topo = os.path.join(topo_dir, 'tuol.asc')
+wn_topo_prj = os.path.join(topo_dir, 'tuol.prj')
 wn_cfg = os.path.join(out_dir, 'windninjarun.cfg')
-nthreads = 2
-nthreads_w = 1
-dxy = 400
+nthreads = 24
+dxy = 100
 
 # smrf params
-fp_dem = os.path.join(topo_dir, 'tuol_topo_2019.nc')
+fp_dem = os.path.join(topo_dir, 'tuolx_50m_topo.nc')
 zone_letter = 'N'
 zone_number = 11
 
 fmt = '%Y%m%d-%H-%M'
 
-# logging
-logfile = os.path.join(out_dir, 'log_test.txt')
-#logfile = None
-loglevel = 'debug'
+# derived perams
+wy_start = pd.to_datetime('2016-10-01 00:00')
 
-# did we already make the new gribs?
-have_gribs = False
 
 # make entrypoint take in the run_katana call
 action = ' docker run -v {}:{} -v {}:{} -v {}:{}'.format(directory1, directory,
                                                          out_dir1, out_dir,
                                                          topo_dir1, topo_dir)
-# does this work??????
-action += ' --user 1001'
 
-action += ' {} --start_date {} --end_date {}'
+action += ' {} --start_date {} --end_date {} --water_year_start {}'
 action = action.format(image,
                        start_date.strftime(fmt),
-                       end_date.strftime(fmt))
+                       end_date.strftime(fmt),
+                       wy_start.strftime(fmt))
 
 action += ' --input_directory {} --output_directory {}'.format(directory, out_dir)
 action += ' --wn_cfg {}'.format(wn_cfg)
 action += ' --topo {} --zn_number {} --zn_letter {}'.format(fp_dem, zone_number, zone_letter)
-action += ' --buff {} --nthreads {} --nthreads_w {} --dxy {}'.format(buff, nthreads, nthreads_w, dxy)
-action += ' --loglevel {} --logfile {}'.format(loglevel, logfile)
-if have_gribs:
-    action += ' --have_gribs'
+action += ' --buff {} --nthreads {} --dxy {}'.format(buff, nthreads, dxy)
 
 print('Running {}'.format(action))
 s = Popen(action, shell=True,stdout=PIPE)
