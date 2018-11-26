@@ -53,7 +53,7 @@ def get_topo_stats(fp, filetype='netcdf'):
 
     return ts
 
-def netcdf_dem_to_ascii(fp_nc, fp_asc, logger):
+def netcdf_dem_to_ascii(fp_nc, fp_asc, logger, utm_let=None, utm_num=None):
     """
     Write a geotagged ascii dem for use with WindNinja
 
@@ -62,6 +62,8 @@ def netcdf_dem_to_ascii(fp_nc, fp_asc, logger):
         fp_asc:     file path to output ascii file. The .prj file will have
                     the same name
         logger:     instance of logger
+        utm_let:   used for ascii dem projection if not in topo netcdf
+        utm_num:    used for ascii dem projection if not in topo netcdf
 
     Returns:
         Writes the ascii and prj files
@@ -86,8 +88,17 @@ def netcdf_dem_to_ascii(fp_nc, fp_asc, logger):
         dem = np.flipud(dem)
 
         # create header for projection
-        gridmap = ds.variables['dem'].grid_mapping
-        prj_head = ds.variables[gridmap].spatial_ref
+        if hasattr(ds.variables['dem'], 'grid_mapping'):
+            gridmap = ds.variables['dem'].grid_mapping
+            prj_head = ds.variables[gridmap].spatial_ref
+        else:
+            logger.warning('No projection info in topo file!!!')
+            logger.warning('Will use projection info from command line!')
+            # create the projection header from given utm zone
+            prj_head = 'Projection UTM \nZone {} \n'.format(utm_num)
+            prj_head += 'Datum NAD83 \nZunits METERS \nUnits METERS\n'
+            prj_head += 'Spheroid WGS84 \nXshift 0.0 \nYshift 0.0 \nParamters'
+
 
         # close the netcdf
         ds.close()

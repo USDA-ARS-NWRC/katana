@@ -82,7 +82,8 @@ class Katana():
         self.wn_topo_prj = os.path.join(dir_topo,
                                         self.wn_prefix+topo_add+'.prj')
         # write new files
-        netcdf_dem_to_ascii(self.fp_dem, self.wn_topo, self._logger)
+        netcdf_dem_to_ascii(self.fp_dem, self.wn_topo, self._logger,
+                            utm_let=self.zone_letter, utm_num=self.zone_number)
 
         # get info about model domain
         self.ts = get_topo_stats(self.fp_dem)
@@ -92,8 +93,8 @@ class Katana():
 
     def create_log(self, loglevel, logfile):
         '''
-        Create logger and log file. If logfile is None, 
-        the logger will print to the screen with colored logs. 
+        Create logger and log file. If logfile is None,
+        the logger will print to the screen with colored logs.
 
         Args:
             loglevel:   level of information from logs (debug, info, etc)
