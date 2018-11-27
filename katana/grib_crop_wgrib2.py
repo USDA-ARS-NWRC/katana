@@ -10,7 +10,7 @@ import netCDF4 as nc
 import glob
 
 
-def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger, 
+def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
                   buff=1500, zone_letter='N', zone_number=11,
                   nthreads_w=1):
     """
@@ -159,7 +159,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
     fmt = '%Y%m%d'
     dtt = end_date - start_date
     ndays = int(dtt.days)
-    date_list = [start_date + datetime.timedelta(days=x) for x in range(0, ndays+1)]
+    date_list = [pd.to_datetime(start_date.date()) + datetime.timedelta(days=x) for x in range(0, ndays+1)]
 
     # list to track number of hours for each day
     num_list = []
