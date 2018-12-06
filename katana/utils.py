@@ -5,55 +5,89 @@ import pandas as pd
 from subprocess import Popen, PIPE
 import re
 
-def sample_hrrr_grib2(fp_grib, lat, lon, vars):
+def sample_hrrr_grib2(fp_grib, lats, lons, stns, var, dt):
     '''
     Use wgrib2 cli to sample variables from a grib2 file at a certain lat and lon
 
     Args:
         fp_grib:    File pointer to grib2 file
-        lat:        lat of point
-        lon:        lon of point
-        vars:       List of strings matching variables to sample
+        lats:        list of lat of point
+        lons:        list of lon of point
+        var:       strings matching variables to sample
 
     Returns:
-        vals:       list of values in same order as vars
+        vals:       list of values in same order as var
     '''
+    stns = [str(stn) for stn in stns]
+    clms = ['date_time'] + stns
+
+    df = pd.DataFrame(columns=clms)
+    #print(dt)
+    df['date_time'] = [dt]
+    #df.set_index('date_time', inplace=True)
+
+    df_loc = pd.DataFrame(columns=['latitude', 'longitude'])
 
     #vars are 2m air temp and 1 hour accm precip
     var_maps = {'air_temp': 'TMP:2 m', 'precip_intensity': 'APCP:surface'}
     vals = {}
     # construct command line argument
+    k = var
 
-    for k in vars:
-        action = 'wgrib2  {} '.format(fp_grib)
-        action += ' -match "{}" '.format(var_maps[k])
-        action += ' -ncpu 1 -s -lon {} {}'.format(lon, lat)
+    action = 'wgrib2  {} '.format(fp_grib)
+    action += ' -match "{}" '.format(var_maps[k])
+    action += ' -ncpu 1 -s '
+    for lon, lat in zip(lons, lats):
+        action += ' -lon {} {}'.format(lon, lat)
 
-        print('\n\nTrying {}\n'.format(action))
-        s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
-        while True:
-            line = s.stdout.readline().decode()
-            eline = s.stderr.readline().decode()
-            if not line:
-                break
+    print('\n\nTrying {}\n'.format(action))
+    s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
+    idl = 0
+    val = np.ones(len(lats))*np.nan
 
-            if "FATAL" in eline:
-                raise ValueError('Error in wgrib2: \n{}'.format(eline))
+    real_lon = []
+    real_lat = []
 
-            # find the val, lon, lat
-            val = float(re.search('val=(.+?)$', line).group(1))
-            real_lon = float(re.search('lon=(.+?),', line).group(1))
-            real_lat = float(re.search('lat=(.+?),', line).group(1))
+    while True:
+
+        line = s.stdout.readline().decode()
+        eline = s.stderr.readline().decode()
+        if not line:
+            break
+
+        if "FATAL" in eline:
+            raise ValueError('Error in wgrib2: \n{}'.format(eline))
+
+        # find the val, lon, lat
+        # print(line)
+        lines = line.split('::')[1].split(':')
+        # print(lines)
+        if len(lines) != len(stns):
+            raise ValuesError('Not enough returns')
+
+        for idl, ln in enumerate(lines):
+            out = float(re.search('val=(.+?)$', ln).group(1))
+            real_lon.append(float(re.search('lon=(.+?),', ln).group(1)))
+            real_lat.append(float(re.search('lat=(.+?),', ln).group(1)))
 
             # convert air temp to celcius
             if k == 'air_temp':
-                val -= 273.15
+                out -= 273.15
 
-            vals[k] = val
-            vals['hrrr_lat'] = real_lat
-            vals['hrrr_lon'] = real_lon
+            val[idl] = out
+            #idl += 1
 
-    return vals
+    #vals[k] = val
+
+    for idl, stn in enumerate(stns):
+        df[stn] = [val[idl]]
+        df_loc.loc[stn, 'latitude'] = real_lat[idl]
+        df_loc.loc[stn, 'longitude'] = real_lon[idl]
+
+    # vals['hrrr_lat'] = real_lat
+    # vals['hrrr_lon'] = real_lon
+
+    return df, df_loc
 
 
 # example outputs
