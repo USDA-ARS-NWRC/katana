@@ -39,6 +39,7 @@ class Katana():
             make_new_gribs: option to use existing gribs if this step has been completed
         """
 
+        self.start_timing = datetime.now()
         ################################################
         # Start parsing the arguments
         ################################################
@@ -89,6 +90,7 @@ class Katana():
         self.ts = get_topo_stats(self.fp_dem)
         self.x1 = self.ts['x']
         self.y1 = self.ts['y']
+        # WindNinja grid spacing
         self.dxy = dxy
 
     def create_log(self, loglevel, logfile):
@@ -147,23 +149,6 @@ class Katana():
 
         self._logger = logging.getLogger(__name__)
 
-        # print title and mountains
-        # title, mountain = self.title()
-        # for line in mountain:
-        #     self._logger.info(line)
-        # for line in title:
-        #     self._logger.info(line)
-        # dump saved logs
-        # if len(self.tmp_log) > 0:
-        #     for l in self.tmp_log:
-        #         self._logger.info(l)
-        # if len(self.tmp_warn) > 0:
-        #     for l in self.tmp_warn:
-        #         self._logger.warning(l)
-        # if len(self.tmp_err) > 0:
-        #     for l in self.tmp_err:
-        #         self._logger.error(l)
-
     def make_wn_cfg(self, out_dir, wn_topo, num_hours):
         """
         Edit and write the config file options for the WindNinja program
@@ -173,6 +158,8 @@ class Katana():
             wn_topo:
             num_hours:
 
+        Result:
+            Writes WindNinja config file
         """
 
         # populate config files
@@ -213,24 +200,32 @@ class Katana():
         Create the command line call to run the WindNinja_cli
 
         """
+        # construct call
         action = 'WindNinja_cli {}'.format(self.wn_cfg)
 
+        # run command line using Popen
         self._logger.info('Running {}'.format(action))
-        s = Popen(action, shell=True,stdout=PIPE)
+        s = Popen(action, shell=True,stdout=PIPE, stderr=PIPE)
 
+        # read output from commands
         while True:
             line = s.stdout.readline().decode()
+            eline = s.stderr.readline().decode()
             self._logger.debug(line)
+            # break if we're done
             if not line:
                 break
-        #s.wait()
+            # error if WindNinja errors
+            if "Exception" in eline:
+                self._logger.error("WindNinja has an error")
+                raise Exception(eline)
 
     def run_katana(self):
         """
         Function to crop grib files, create WindNinja config, and run WindNinja
         """
 
-        # create the new grib files
+        # create the new grib files for entire run period
         date_list, num_list = create_new_grib(self.start_date, self.end_date,
                                               self.directory, self.out_dir,
                                               self.x1, self.y1, self._logger,
@@ -240,15 +235,17 @@ class Katana():
                                               nthreads_w=self.nthreads_w,
                                               make_new_gribs=self.make_new_gribs)
 
-        self._logger.debug(date_list)
+        # self._logger.debug(date_list)
         # make config, run wind ninja, make netcdf
         for idd, day in enumerate(date_list):
+            # if there are files
             if num_list[idd] > 0:
                 out_dir_day = os.path.join(self.out_dir,
                                            'data{}'.format(day.strftime(self.fmt_date))
                                            , 'wind_ninja_data')
                 out_dir_wn = os.path.join(out_dir_day,
                                            'hrrr.{}'.format(day.strftime(self.fmt_date)))
+                # make output folder if it doesn't exist
                 if not os.path.isdir(out_dir_day):
                     os.makedirs(out_dir_day)
 
@@ -264,5 +261,6 @@ class Katana():
         """
         Provide some logging info about when AWSM was closed
         """
-
-        self._logger.info('Katana closed --> %s' % datetime.now())
+        run_timing = datetime.now() - self.start_timing
+        self._logger.info('Katana ran in: {}'.format(run_timing))
+        self._logger.info('Katana closed --> {}'.format(datetime.now()))
