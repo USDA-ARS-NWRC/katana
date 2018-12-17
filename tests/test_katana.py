@@ -103,6 +103,7 @@ class TestStandardRME(unittest.TestCase):
 
             print('Testing {}'.format(output_now))
             a = compare_image(output_gold, output_now)
+            print(a)
 
             assert(a)
 
