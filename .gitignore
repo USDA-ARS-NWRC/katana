@@ -109,3 +109,7 @@ examples/simple_hill/* *.csv
 */input_backup/*
 test_data/output/*
 */tmp/*
+
+tests/RME/output/data20181001/*
+tests/RME/topo/*.asc
+tests/RME/topo/*.prj
