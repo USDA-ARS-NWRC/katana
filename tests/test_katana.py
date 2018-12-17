@@ -11,7 +11,6 @@ Tests for an entire Katana run.
 import unittest
 import shutil
 import os
-import awsm
 import numpy as np
 import pandas as pd
 from netCDF4 import Dataset
