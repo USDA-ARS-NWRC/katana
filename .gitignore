@@ -11,7 +11,7 @@
 
 # Examples files
 examples/*/*/maxus*.nc
-*/*/output/*
+*/*/output/RME
 */*/log.*
 
 # Byte-compiled / optimized / DLL files
