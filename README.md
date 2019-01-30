@@ -1,3 +1,9 @@
+[![GitHub version](https://badge.fury.io/gh/USDA-ARS-NWRC%2Fkatana.svg)](https://badge.fury.io/gh/USDA-ARS-NWRC%2Fkatana)
+[![Docker Build Status](https://img.shields.io/docker/build/usdaarsnwrc/katana.svg)](https://hub.docker.com/r/usdaarsnwrc/katana/)
+[![Docker Automated build](https://img.shields.io/docker/automated/usdaarsnwrc/katana.svg)](https://hub.docker.com/r/usdaarsnwrc/katana/)
+[![Build Status](https://travis-ci.org/USDA-ARS-NWRC/katana.svg?branch=master)](https://travis-ci.org/USDA-ARS-NWRC/katana)
+[![Coverage Status](https://coveralls.io/repos/github/USDA-ARS-NWRC/katana/badge.svg?branch=master)](https://coveralls.io/github/USDA-ARS-NWRC/katana?branch=master)
+
 # katana
 A project for bringing [WindNinja] Data into the AWSM system.
 
@@ -31,4 +37,3 @@ the docker conatiner from a python script so that the inputs do not have to be g
  - desired WindNinja grid resolution
  - log lvel
  - log file
-
