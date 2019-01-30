@@ -8,7 +8,6 @@ import coloredlogs
 
 from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
 from katana.grib_crop_wgrib2 import create_new_grib
-from katana.windninja_to_nc import convert_wind_ninja
 
 
 class Katana():
