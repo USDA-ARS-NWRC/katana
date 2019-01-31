@@ -27,6 +27,12 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
             zone_letter: UTM zone letter (N)
             zone_number: UTM zone number
             nthreads_w:  number of threads for wgrib2 commands
+
+    Returns:
+            not fatl:   True if the run was succesful
+            tmp_grib:   File pointer to temporary grib file
+            fp_out:     File pointer to final grib file
+
     """
     # date format for files
     #fmt = '%Y%m%d-%H-%M'
@@ -78,37 +84,28 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
         else:
             fatl = False
 
-    # tryingn to find better grib file
+    # trying to find better grib file
     if fatl:
         del(s)
         os.remove(tmp_grib)
 
         logger.warning('\nsmall grib did not work, trying a forecast hour\n')
 
-        # find the directory name
-        hrrr_dir = os.path.dirname(fp_in)
-        fname = os.path.basename(fp_in)
-        # try:
-        # find the start and forecast hour
-        st_hr = int(fname[6:8]) - 1
-        fx_hr = int(fname[17:19]) + 1
-        # get a new file to open
-        new_file = os.path.join(hrrr_dir,
-                                'hrrr.t{:02d}z.wrfsfcf{:02d}.grib2'.format(st_hr, fx_hr))
-        action = 'wgrib2 {} -ncpu {} -small_grib {}:{} {}:{} {}'.format(new_file, nthreads_w,
-                                                                        lonw, lone,
-                                                                        lats, latn, tmp_grib)
-        logger.debug('\n\nTrying {}'.format(action))
-        s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
-        while True:
-            line = s.stdout.readline().decode()
-            eline = s.stderr.readline().decode()
-            if not line:
-                break
+    return not fatl, tmp_grib, fp_out
 
-            # if it failed, find a different forecast hour
-            if "FATAL" in eline:
-                raise ValueError('Cannot find decent grib file for {}'.format(file_dt))
+
+def sgrib_variable_crop(tmp_grib, nthreads_w, fp_out):
+    """
+    Take the small grib file from grib_to_sgrib and cut it down to the variables we need
+
+    Args:
+        tmp_grib:   File path to small grib2 file
+        nthreads_w: Number of threads for running wgrib2 commands
+        fp_out:     Path for outputting final grib2 file
+
+    Returns:
+
+    """
 
     # call to grab correct variables
     action2 = "wgrib2 {} -ncpu {} -match 'TMP:2 m|UGRD:10 m|VGRD:10 m|TCDC:' -GRIB {}"
@@ -167,29 +164,37 @@ def create_new_grib(start_date, end_date, directory, out_dir,
     # loop through dates
     for idt, dt in enumerate(date_list):
         counter = 0
-        # get files
-        hrrr_dir = os.path.join(directory,
-                                'hrrr.{}/hrrr.t*f00.grib2'.format(dt.strftime(fmt)))
-        fps = glob.glob(hrrr_dir)
 
-        if len(fps) == 0:
-            logger.warning('No matching files in {}'.format(hrrr_dir))
-
-        # write and read new netcdfs
-        for idf, fp in enumerate(fps):
-            bn = os.path.basename(fp)
-            # find hours from start of day
-            add_hrs = int(bn[6:8]) + int(bn[17:19])
-            file_time = pd.to_datetime(dt + datetime.timedelta(hours=add_hrs))
+        # loop through each hour to find file that works
+        for hr_base in range(24):
+            # hour we need a grib2 file for
+            file_time = dt + pd.to_timedelta(hr_base, 'h')
 
             # check if we are in the date range
             if file_time >= start_date and file_time <= end_date:
                 # option to cut down on already completed work
                 if make_new_gribs:
-                    # convert grib to smaller gribgs with only the needed variables for WindNinjaS
-                    grib_to_sgrib(fp, out_dir, file_time, x1, y1, logger, buff=buff,
-                                zone_letter=zone_letter, zone_number=zone_number,
-                                nthreads_w=nthreads_w)
+                    good_file = False
+                    # try different forecast hours to get a working file
+                    for fx_hr in range(7):
+                        fp = hrrr_file_name_finder(directory, file_time, fx_hr)
+
+                        # convert grib to smaller gribgs with only the needed variables for WindNinjaS
+                        sgrib, tmp_grib, fp_out = grib_to_sgrib(fp, out_dir,
+                                                                file_time, x1, y1,
+                                                                logger, buff=buff,
+                                                                zone_letter=zone_letter,
+                                                                zone_number=zone_number,
+                                                                nthreads_w=nthreads_w)
+                        # proceed and break when we get a good file
+                        if sgrib:
+                            # grab just the variables we need
+                            sgrib_variable_crop(tmp_grib, nthreads_w, fp_out)
+                            break
+
+                        # kill job if we didn't find a good file
+                        if fx_hr == 6:
+                            raise IOError('No good grib file for {}'.format(file_time.strftime('%Y-%m-%d %H')))
 
                 # track hours per day
                 counter += 1
@@ -200,3 +205,37 @@ def create_new_grib(start_date, end_date, directory, out_dir,
         num_list.append(counter)
 
     return date_list, num_list
+
+
+def hrrr_file_name_finder(base_path, date, fx_hr = 0):
+    """
+    Find the file pointer for a hrrr file with a specific forecast hour
+
+    Args:
+        base_path:  The base HRRR directory. For ./data/forecasts/hrrr/hrrr.20180203/...
+                    the base_path is ./forecasts/hrrr/
+        date:       datetime that the file is used for
+        fx_hr:      forecast hour
+    Returns:
+        fp:         string of absolute path to the file
+
+    """
+    fmt_day ='%Y%m%d'
+    base_path = os.path.abspath(base_path)
+    date = pd.to_datetime(date)
+    fx_hr = int(fx_hr)
+
+    day = date.day()
+    hr = int(date.hour)
+
+    new_hr = hr - fx_hr
+
+    # if we've dropped back a day, fix logic to reflect that
+    if new_hr < 0:
+        day = day - pd.to_timedelta('1 day')
+        new_hr = new_hr + 24
+
+    fp = os.path.join(base_path, 'hrrr.{}'.format(day.strftime(fmt_day)),
+                      'hrrr.t{:02d}z.wrfsfcf{:02d}.grib2'.format(new_hr, fx_hr))
+
+    return fp
