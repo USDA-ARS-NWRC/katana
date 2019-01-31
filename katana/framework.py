@@ -52,7 +52,6 @@ class Katana():
         self.end_date = end_date
 
         self.fmt_date = '%Y%m%d'
-
         self.directory = directory
         self.out_dir = out_dir
 

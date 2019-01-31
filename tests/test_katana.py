@@ -39,7 +39,7 @@ def compare_image(gold_image,test_image):
 
 class TestStandardRME(unittest.TestCase):
     """
-    Integration test for AWSM using reynolds mountain east
+    Integration test for Katana using Reynolds Mountain East
     """
 
     @classmethod
@@ -81,6 +81,8 @@ class TestStandardRME(unittest.TestCase):
             result = True
         except:
             result = False
+
+        assert(result)
 
     def test_image(self):
         """

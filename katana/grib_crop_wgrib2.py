@@ -94,7 +94,7 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
     return not fatl, tmp_grib, fp_out
 
 
-def sgrib_variable_crop(tmp_grib, nthreads_w, fp_out):
+def sgrib_variable_crop(tmp_grib, nthreads_w, fp_out, logger):
     """
     Take the small grib file from grib_to_sgrib and cut it down to the variables we need
 
@@ -163,6 +163,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
 
     # loop through dates
     for idt, dt in enumerate(date_list):
+        logger.info('Working on gribs for {}'.format(dt.strftime(fmt)))
         counter = 0
 
         # loop through each hour to find file that works
@@ -189,7 +190,8 @@ def create_new_grib(start_date, end_date, directory, out_dir,
                         # proceed and break when we get a good file
                         if sgrib:
                             # grab just the variables we need
-                            sgrib_variable_crop(tmp_grib, nthreads_w, fp_out)
+                            sgrib_variable_crop(tmp_grib, nthreads_w,
+                                                fp_out, logger)
                             break
 
                         # kill job if we didn't find a good file
@@ -225,7 +227,7 @@ def hrrr_file_name_finder(base_path, date, fx_hr = 0):
     date = pd.to_datetime(date)
     fx_hr = int(fx_hr)
 
-    day = date.day()
+    day = date.date()
     hr = int(date.hour)
 
     new_hr = hr - fx_hr
