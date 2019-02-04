@@ -70,6 +70,8 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
     logger.debug('\nRunning command {}'.format(action))
     s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
 
+    # initialize failure as true, we have to succeed to change this
+    fatl = True
     while True:
         line = s.stdout.readline().decode()
         eline = s.stderr.readline().decode()
@@ -187,6 +189,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
                                                                 zone_letter=zone_letter,
                                                                 zone_number=zone_number,
                                                                 nthreads_w=nthreads_w)
+
                         # proceed and break when we get a good file
                         if sgrib:
                             # grab just the variables we need
