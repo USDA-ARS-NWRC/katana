@@ -118,8 +118,19 @@ def sgrib_variable_crop(tmp_grib, nthreads_w, fp_out, logger):
     #                                                                 fp_out)
 
     logger.debug('\nRunning command {}'.format(action2))
-    s2 = Popen(action2, shell=True, stdout=PIPE)
-    s2.wait()
+    s2 = Popen(action2, shell=True, stdout=PIPE, stderr=PIPE)
+    while True:
+        line = s2.stdout.readline().decode()
+        eline = s2.stderr.readline().decode()
+
+        if not line:
+            break
+
+        # if it failed, find a different forecast hour
+        if "FATAL" in eline:
+            raise ValueError('Command failed:\n{}'.format(action2))
+
+    # s2.wait()
 
     os.remove(tmp_grib)
 
