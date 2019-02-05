@@ -68,7 +68,7 @@ setup(
     packages=['katana'],
     test_suite='tests',
     # tests_require=test_requirements,
-    url='https://github.com/micah-prime/katana',
+    url='https://github.com/usdaarsnwrc/katana',
     version='0.2.0',
     zip_safe=False,
     scripts=['scripts/run_katana'],
