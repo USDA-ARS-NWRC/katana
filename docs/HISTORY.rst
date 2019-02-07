@@ -14,3 +14,11 @@ History
 * Creates WindNinja config and runs daily
 * Dockerized
 * Commnad line capability
+
+0.3.0 (2019-02-07)
+------------------
+
+* Added testing for HRRR functions
+* Using Travic CI and Coveralls
+* Improved docker usage
+* Sample pixel from grib2 filie
