@@ -9,6 +9,10 @@ import coloredlogs
 from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
 from katana.grib_crop_wgrib2 import create_new_grib
 
+from inicheck.config import MasterConfig, UserConfig
+from inicheck.tools import get_user_config, check_config
+from inicheck.output import print_config_report, generate_config
+from inicheck.tools import cast_all_variables
 
 class Katana():
     """
@@ -37,7 +41,38 @@ class Katana():
             logfile:        file where log will be stored
             make_new_gribs: option to use existing gribs if this step has been completed
         """
+        if isinstance(config, str):
+            if not os.path.isfile(config):
+                raise Exception('Configuration file does not exist --> {}'
+                                .format(config))
+            configFile = config
 
+            try:
+                mcfg = MasterConfig(modules = ['katana')
+
+                # Read in the original users config
+                self.ucfg = get_user_config(configFile, mcfg=mcfg)
+                self.configFile = configFile
+
+            except UnicodeDecodeError as e:
+                print(e)
+                raise Exception(('The configuration file is not encoded in '
+                                 'UTF-8, please change and retry'))
+
+        elif isinstance(config, UserConfig):
+            self.ucfg = config
+            configFile = ''
+
+        else:
+            raise Exception('Config passed to Katana is neither file name nor UserConfig instance')
+
+        self.tmp_log.append("Checking config file for issues...")
+        warnings, errors = check_config(self.ucfg)
+        print_config_report(warnings, errors)
+
+        self.config = self.ucfg.cfg
+
+        
         self.start_timing = datetime.now()
         ################################################
         # Start parsing the arguments
