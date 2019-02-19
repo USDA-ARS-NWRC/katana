@@ -20,9 +20,11 @@ class Katana():
     context of the USDA ARS snow-water supply modeling workflow
     """
 
-    def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
-                 end_date, directory, out_dir,wn_cfg,
-                 nthreads, nthreads_w, dxy, loglevel, logfile, make_new_gribs):
+    def __init__(self, config):
+    #
+    # fp_dem, zone_letter, zone_number, buff, start_date,
+    #              end_date, directory, out_dir,wn_cfg,
+    #              nthreads, nthreads_w, dxy, loglevel, logfile, make_new_gribs):
         """
         Args:
             fp_dem:         path to netcdf topo file used for smrf
@@ -48,7 +50,7 @@ class Katana():
             configFile = config
 
             try:
-                mcfg = MasterConfig(modules = ['katana')
+                mcfg = MasterConfig(modules = ['katana'])
 
                 # Read in the original users config
                 self.ucfg = get_user_config(configFile, mcfg=mcfg)
@@ -66,47 +68,56 @@ class Katana():
         else:
             raise Exception('Config passed to Katana is neither file name nor UserConfig instance')
 
-        self.tmp_log.append("Checking config file for issues...")
+        print("Checking config file for issues...")
         warnings, errors = check_config(self.ucfg)
         print_config_report(warnings, errors)
 
         self.config = self.ucfg.cfg
+        print(self.config)
 
-        
         self.start_timing = datetime.now()
         ################################################
         # Start parsing the arguments
         ################################################
-        self.fp_dem = fp_dem
-        self.zone_letter = zone_letter
-        self.zone_number = zone_number
-        self.buff = buff
+        self.fp_dem = self.config['topo']['filename']
+        self.zone_letter = self.config['topo']['zone_letter']
+        self.zone_number = self.config['topo']['zone_number']
+
 
         # find start and end dates
-        self.start_date = start_date
-        self.end_date = end_date
-
+        self.start_date = self.config['time']['start_date']
+        self.end_date = self.config['time']['end_date']
         self.fmt_date = '%Y%m%d'
-        self.directory = directory
-        self.out_dir = out_dir
 
-        self.nthreads_w = nthreads_w
+        self.buff = self.config['input']['buffer']
+        self.data_type = self.config['input']['data_type']
+        self.directory = self.config['input']['directory']
+        if self.data_type != 'hrrr':
+            raise IOError('Not an approved input datatype')
 
-        self.make_new_gribs = make_new_gribs
+        self.out_dir = self.config['output']['out_location']
+        self.make_new_gribs = self.config['output']['make_new_gribs']
+        self.wn_cfg = self.config['output']['wn_cfg']
+        self.dxy = self.config['output']['dxy']
+
+        # system config variables
+        self.nthreads_w = self.config['system']['nthreads_grib']
+        self.nthreads = self.config['system']['nthreads']
 
         ################################################
         # Create logger
         ################################################
+        # logging config variables
+        loglevel = self.config['logging']['log_level']
+        logfile = self.config['logging']['log_file']
         self.create_log(loglevel, logfile)
 
         ################################################
         # Find WindNinja parameters
         ################################################
-        # wind ninja inputs
-        self.wn_cfg = os.path.abspath(wn_cfg)
+
         # prefix that wind ninja will use in the file naming convention
         self.wn_prefix = os.path.splitext(os.path.basename(self.fp_dem))[0]
-        self.nthreads = nthreads
 
         # write ascii dem for WindNinja
         topo_add = '_windninja_topo'
@@ -123,8 +134,7 @@ class Katana():
         self.ts = get_topo_stats(self.fp_dem)
         self.x1 = self.ts['x']
         self.y1 = self.ts['y']
-        # WindNinja grid spacing
-        self.dxy = dxy
+
 
     def create_log(self, loglevel, logfile):
         '''

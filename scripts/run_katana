@@ -15,98 +15,23 @@ def run():
     katana is a command line program designed to take a config file. This
     will be fed to the run_katana function within framework.
     '''
-    
+
     # Parse arguments
     p = argparse.ArgumentParser(description='Run Katana wind system.')
 
-    p.add_argument('-sd','--start_date', required=True,
-                    help="start date for run")
-
-    p.add_argument('-ed','--end_date', required=True,
-                    help="end date for run")
-
-    p.add_argument('-indir','--input_directory', required=True,
-                    help="input directory where hrrr.<date> files are located")
-
-    p.add_argument('-outdir','--output_directory', required=True,
-                    help="directory where output will be stored")
-
-    p.add_argument('-wnc','--wn_cfg', required=True,
-                    help='config file path for WindNinja')
-
-    p.add_argument('-tp','--topo', required=True,
-                    help='path to smrf topo netcdf')
-
-    p.add_argument('-zn','--zn_number', required=True,
-                    help='UTM zone number for input topo')
-
-    p.add_argument('-zl','--zn_letter', required=True,
-                    help='UTM zone letter for input topo')
-
-    p.add_argument('-bf','--buff', required=False, default=6000,
-                    help='buffer around SMRF domain for WindNinja input')
-
-    p.add_argument('-nt','--nthreads', required=False, default=1,
-                    help='number of WindNinja threads')
-
-    p.add_argument('-nt_w', '--nthreads_w', required=False, default=1,
-                    help='number of threads for wgrib2 commands')
-
-    p.add_argument('-d','--dxy', required=False, default=100,
-                    help='grid spacing of WindNinja simulation')
-    
-    p.add_argument('-ll', '--loglevel', required=False, default='debug',
-                   help='level of info printed out in the logs')
-
-    p.add_argument('-lf', '--logfile', required=False, default=None,
-                   help='file where log will be written. default is None \
-                        and will print to screen')
-
-    p.add_argument("-hg", "--have_gribs",
-                   action="store_true", default=False,
-                   help="don't make gribs because we did that already")
+    p.add_argument('cfg', metavar='c', type=str,
+                   help='Path to config file')
 
 
     args = p.parse_args()
 
-    fp_dem = os.path.abspath(args.topo)
-    zone_letter = args.zn_letter
-    zone_number = int(args.zn_number)
-    buff = int(args.buff)
-    start_date = pd.to_datetime(args.start_date)
-    end_date = pd.to_datetime(args.end_date)
-    directory = os.path.abspath(args.input_directory)
-    out_dir = os.path.abspath(args.output_directory)
-    wn_cfg = os.path.abspath(args.wn_cfg)
-    nthreads = int(args.nthreads)
-    nthreads_w = int(args.nthreads_w)
-    dxy = float(args.dxy)
-    loglevel = args.loglevel
-    have_gribs = args.have_gribs
+    cfg = args.cfg
 
-    # if we want to skip redundant conversions we already did
-    make_new_gribs=True
-    if have_gribs:
-        make_new_gribs=False
-    
-    # if we have a log file, set the absolute path
-    logfile = args.logfile
-    if logfile is None:
-        pass
-    elif logfile == 'None':
-        logfile = None
-    else: 
-        logfile = os.path.abspath(logfile)
-
+    if not os.path.isfile(cfg):
+        raise IOError('Not a correct path to config file')
+        
     # run the katana framework
-    with Katana(fp_dem, zone_letter,
-                zone_number, buff,
-                start_date, end_date,
-                directory, out_dir,
-                wn_cfg, nthreads,
-                nthreads_w,
-                dxy, loglevel,
-                logfile, make_new_gribs) as k:
+    with Katana(cfg) as k:
         k.run_katana()
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import os
 __version__ = '0.3.1'
 
 __core_config__ = os.path.abspath(os.path.dirname(__file__) + '/CoreConfig.ini')
