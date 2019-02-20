@@ -2,16 +2,11 @@ from katana.framework import Katana
 from inicheck.tools import get_user_config, check_config
 from inicheck.tools import cast_all_variables
 from copy import deepcopy
-import pandas as pd
 import numpy as np
 import dateparser
 import os
 import shutil
 import unittest
-<< << << < HEAD
-
-== == == =
->>>>>> > updating tests to use config
 
 
 class KatanaTestCase(unittest.TestCase):
@@ -27,35 +22,13 @@ class KatanaTestCase(unittest.TestCase):
         """
         self.test_dir = os.path.abspath('tests/RME')
 
-
-<< << << < HEAD
         # check whether or not this is being ran as a single
         # test or part of the suite
-== == == =
+
         self.test_cfg = os.path.abspath('tests/config.ini')
         # read in the base configuration
         self.base_config = get_user_config(self.test_cfg,
                                            modules=['katana'])
-        # check whether or not this is being ran as a single test or part of the suite
->>>>>> > updating tests to use config
-        self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
-        self.zone_letter = 'N'
-        self.zone_number = 11
-        self.buff = 6000
-        start_date = '2018-10-01 20:00'
-        end_date = '2018-10-01 23:00'
-        self.directory = os.path.join(self.test_dir, 'input')
-        self.out_dir = os.path.join(self.test_dir, 'output')
-        self.wn_cfg = os.path.join(self.test_dir, 'output/wn_cfg.txt')
-        self.nthreads = 1
-        self.nthreads_w = 1
-        self.dxy = 50
-        self.loglevel = 'info'
-        self.logfile = os.path.join(self.test_dir, 'output/log.txt')
-        self.make_new_gribs = True
-
-        self.start_date = dateparser.parse(start_date)
-        self.end_date = dateparser.parse(end_date)
 
     def tearDown(self):
         """
@@ -86,7 +59,7 @@ class TestConfigurations(KatanaTestCase):
 
         # Try full katana framework
         try:
-            k =  Katana(self.test_cfg)
+            k = Katana(self.test_cfg)
             k.run_katana()
             result = True
         except Exception as e:
@@ -104,7 +77,7 @@ class TestConfigurations(KatanaTestCase):
         config = cast_all_variables(config, config.mcfg)
 
         try:
-            k =  Katana(config)
+            k = Katana(config)
             k.run_katana()
             result = True
         except Exception as e:

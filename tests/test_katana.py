@@ -50,25 +50,8 @@ class TestStandardRME(unittest.TestCase):
         """
         self.test_dir = os.path.abspath('tests/RME')
         self.test_cfg = os.path.abspath('tests/config.ini')
-        # check whether or not this is being ran as a single test or part of the suite
-        self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
-        self.zone_letter = 'N'
-        self.zone_number = 11
-        self.buff = 6000
-        start_date = '2018-10-01 20:00'
-        end_date = '2018-10-01 23:00'
-        self.directory = os.path.join(self.test_dir, 'input')
         self.out_dir = os.path.join(self.test_dir, 'output')
-        self.wn_cfg = os.path.join(self.test_dir, 'output/wn_cfg.txt')
-        self.nthreads = 1
-        self.nthreads_w = 1
-        self.dxy = 50
-        self.loglevel = 'info'
-        self.logfile = os.path.join(self.test_dir, 'output/log.txt')
-        self.make_new_gribs = True
 
-        self.start_date = pd.to_datetime(start_date)
-        self.end_date = pd.to_datetime(end_date)
 
         try:
             k = Katana(self.test_cfg)
