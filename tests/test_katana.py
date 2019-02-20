@@ -49,8 +49,8 @@ class TestStandardRME(unittest.TestCase):
         Runs the short simulation over reynolds mountain east
         """
         self.test_dir = os.path.abspath('tests/RME')
-        # check whether or not this is being ran as a single test
-        # or part of the suite
+        self.test_cfg = os.path.abspath('tests/config.ini')
+        # check whether or not this is being ran as a single test or part of the suite
         self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
         self.zone_letter = 'N'
         self.zone_number = 11
@@ -67,23 +67,15 @@ class TestStandardRME(unittest.TestCase):
         self.logfile = os.path.join(self.test_dir, 'output/log.txt')
         self.make_new_gribs = True
 
-        self.start_date = dateparser.parse(start_date)
-        self.end_date = dateparser.parse(end_date)
+        self.start_date = pd.to_datetime(start_date)
+        self.end_date = pd.to_datetime(end_date)
 
-        # try:
-        k = Katana(self.fp_dem, self.zone_letter,
-                   self.zone_number, self.buff,
-                   self.start_date, self.end_date,
-                   self.directory, self.out_dir,
-                   self.wn_cfg, self.nthreads,
-                   self.nthreads_w,
-                   self.dxy, self.loglevel,
-                   self.logfile, self.make_new_gribs)
-        k.run_katana()
-        result = True
-        # except Exception as e:
-        #     print(e)
-        #     result = False
+        try:
+            k = Katana(self.test_cfg)
+            k.run_katana()
+            result = True
+        except:
+            result = False
 
         assert(result)
 

@@ -78,7 +78,7 @@ class Katana():
         print_config_report(warnings, errors)
 
         self.config = self.ucfg.cfg
-        print(self.config)
+        # print(self.config)
 
         self.start_timing = datetime.now()
         ################################################

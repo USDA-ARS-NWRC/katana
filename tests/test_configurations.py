@@ -1,10 +1,17 @@
+from katana.framework import Katana
+from inicheck.tools import get_user_config, check_config
+from inicheck.tools import cast_all_variables
+from copy import deepcopy
+import pandas as pd
+import numpy as np
+import dateparser
 import os
 import shutil
 import unittest
+<< << << < HEAD
 
-import dateparser
-
-from katana.framework import Katana
+== == == =
+>>>>>> > updating tests to use config
 
 
 class KatanaTestCase(unittest.TestCase):
@@ -19,8 +26,18 @@ class KatanaTestCase(unittest.TestCase):
         Runs the short simulation over reynolds mountain east
         """
         self.test_dir = os.path.abspath('tests/RME')
+
+
+<< << << < HEAD
         # check whether or not this is being ran as a single
         # test or part of the suite
+== == == =
+        self.test_cfg = os.path.abspath('tests/config.ini')
+        # read in the base configuration
+        self.base_config = get_user_config(self.test_cfg,
+                                           modules=['katana'])
+        # check whether or not this is being ran as a single test or part of the suite
+>>>>>> > updating tests to use config
         self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
         self.zone_letter = 'N'
         self.zone_number = 11
@@ -69,14 +86,7 @@ class TestConfigurations(KatanaTestCase):
 
         # Try full katana framework
         try:
-            k = Katana(self.fp_dem, self.zone_letter,
-                       self.zone_number, self.buff,
-                       self.start_date, self.end_date,
-                       self.directory, self.out_dir,
-                       self.wn_cfg, self.nthreads,
-                       self.nthreads_w,
-                       self.dxy, self.loglevel,
-                       self.logfile, self.make_new_gribs)
+            k =  Katana(self.test_cfg)
             k.run_katana()
             result = True
         except Exception as e:
@@ -87,15 +97,14 @@ class TestConfigurations(KatanaTestCase):
         self.assertTrue(result)
 
         # Try again without making new gribs
+        config = deepcopy(self.base_config)
+        config.raw_cfg['output']['make_new_gribs'] = False
+        config.apply_recipes()
+
+        config = cast_all_variables(config, config.mcfg)
+
         try:
-            k = Katana(self.fp_dem, self.zone_letter,
-                       self.zone_number, self.buff,
-                       self.start_date, self.end_date,
-                       self.directory, self.out_dir,
-                       self.wn_cfg, self.nthreads,
-                       self.nthreads_w,
-                       self.dxy, self.loglevel,
-                       self.logfile, False)
+            k =  Katana(config)
             k.run_katana()
             result = True
         except Exception as e:
