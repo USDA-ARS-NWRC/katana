@@ -9,41 +9,42 @@ import os
 import sys
 from subprocess import check_output
 
-#Grab and write the gitVersion from 'git describe'.
-gitVersion = ''
-gitPath = ''
-
-# get git describe if in git repository
-print('Fetching most recent git tags')
-if os.path.exists('./.git'):
-    try:
-        # if we are in a git repo, fetch most recent tags
-        check_output(["git fetch --tags"], shell=True)
-    except Exception as e:
-        print('Unable to fetch most recent tags')
-
-    try:
-        ls_proc = check_output(["git describe --tags"], shell=True, universal_newlines=True)
-        gitVersion = ls_proc
-        print('Checking most recent version')
-    except Exception as e:
-        print('Unable to get git tag and hash')
-# if not in git repo
-else:
-    print('Not in git repository')
+if sys.argv[-1] != 'test':
+    #Grab and write the gitVersion from 'git describe'.
     gitVersion = ''
+    gitPath = ''
 
-# get current working directory to define git path
-gitPath = os.getcwd()
+    # get git describe if in git repository
+    print('Fetching most recent git tags')
+    if os.path.exists('./.git'):
+        try:
+            # if we are in a git repo, fetch most recent tags
+            check_output(["git fetch --tags"], shell=True)
+        except Exception as e:
+            print('Unable to fetch most recent tags')
 
-# git untracked file to store version and path
-fname = os.path.abspath(os.path.expanduser('./katana/gitinfo.py'))
+        try:
+            ls_proc = check_output(["git describe --tags"], shell=True, universal_newlines=True)
+            gitVersion = ls_proc
+            print('Checking most recent version')
+        except Exception as e:
+            print('Unable to get git tag and hash')
+    # if not in git repo
+    else:
+        print('Not in git repository')
+        gitVersion = ''
 
-with open(fname,'w') as f:
-    nchars = len(gitVersion) - 1
-    f.write("__gitPath__='{0}'\n".format(gitPath))
-    f.write("__gitVersion__='{0}'\n".format(gitVersion[:nchars]))
-    f.close()
+    # get current working directory to define git path
+    gitPath = os.getcwd()
+
+    # git untracked file to store version and path
+    fname = os.path.abspath(os.path.expanduser('./katana/gitinfo.py'))
+
+    with open(fname,'w') as f:
+        nchars = len(gitVersion) - 1
+        f.write("__gitPath__='{0}'\n".format(gitPath))
+        f.write("__gitVersion__='{0}'\n".format(gitVersion[:nchars]))
+        f.close()
 
 setup(
     author="Micah Sandusky",
@@ -57,7 +58,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
     ],
     description="Downscaling of atmospheric wind simulations using WindNinja for water resource modeling",
     license="CCO 1.0",
@@ -69,7 +69,7 @@ setup(
     test_suite='tests',
     # tests_require=test_requirements,
     url='https://github.com/usdaarsnwrc/katana',
-    version='0.2.0',
+    version='0.3.1',
     zip_safe=False,
     scripts=['scripts/run_katana'],
 )
