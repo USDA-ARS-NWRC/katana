@@ -30,6 +30,8 @@ There is a command line script called run_katana that takes a lot of arguments. 
 docker run --rm  -v /home/ops/wy2019/sanjoaquin/topo:/data/topo -v /data/snowpack/forecasts/hrrr:/data/input   -v /data/blizzard/sanjoaquin/ops/wy2019/ops/data:/data/output  --user 1008:4 usdaarsnwrc/katana:0.3.1 --start_date 20190214-00-00 --end_date 20190215-00-00 --input_directory /data/input --output_directory /data/output --wn_cfg /data/output/windninjarun.cfg --topo /data/topo/topo.nc --zn_number 11 --zn_letter N --buff 6000 --nthreads 12 --nthreads_w 1 --dxy 200 --loglevel info --logfile /data/output/log_test_20190214-00-00.txt
 ```
 
+As evident from this call, the docker images are stored on [DockerHub](https://cloud.docker.com) under the container name ```usdaarsnwrc/katana```.
+
 ### Inputs
  - start_date: start date for run
  - end_date: end date for run
