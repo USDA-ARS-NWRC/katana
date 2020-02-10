@@ -3,7 +3,7 @@ npm-debug.log
 Dockerfile*
 docker-compose*
 .dockerignore
-.git
+# .git
 .gitignore
 .env
 .venv
