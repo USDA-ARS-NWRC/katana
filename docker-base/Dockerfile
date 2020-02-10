@@ -32,10 +32,8 @@ RUN mkdir -p /build/windninja \
     libyaml-dev \
     libfreetype6-dev \
     libpng-dev \
-    # libhdf5-serial-dev \
     python3 \
     python3-pip \
-    # python3-tk \
     curl \
     libeccodes-dev \
     libeccodes-tools \
@@ -52,7 +50,7 @@ RUN mkdir -p /build/windninja \
 ## Wind Ninja
 ####################################################
 ENV PREFIX=/usr/local
-ENV POPPLER="poppler-0.23.4"
+# ENV POPPLER="poppler-0.23.4"
 ENV PROJ="proj-4.8.0"
 ENV GDAL="gdal-2.0.3"
 ENV WNSCRIPTS="/build/windninja/depends"
