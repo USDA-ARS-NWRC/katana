@@ -76,3 +76,7 @@ Wind Ninja can use two different types of solvers: a mass solver or a mass and m
   - One improvement that is already written, just not implemented. This using config files rather than command line arguments.
   - Addition of WRF file compatibility when it becomes available in WindNinja
   - Functionality to run WindNinja with station data rather than gridded data (this exists in WindNinja, but not Katana)
+
+## Developing locally
+
+To install locally, WindNinja and all dependancies will need to be installed prior. Inside a virturalenv, run `pip install -r requirements_dev.txt` will install all necessary packages for `katana`.
