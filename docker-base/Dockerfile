@@ -17,6 +17,7 @@ RUN mkdir -p /build/windninja \
     && cd /build \
     && apt-get update -y \
     && apt-get install -y --no-install-recommends \
+    git \
     gcc \
     g++ \
     cmake \
