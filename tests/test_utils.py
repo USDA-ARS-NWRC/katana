@@ -1,6 +1,5 @@
 import unittest
 from datetime import date, datetime
-import pytz
 
 from katana import utils
 

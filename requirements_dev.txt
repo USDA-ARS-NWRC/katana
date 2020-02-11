@@ -2,3 +2,6 @@
 watchdog==0.8.3
 tox==2.3.1
 matplotlib
+isort==4.3.21
+autopep8==1.5
+flake8==3.7.9

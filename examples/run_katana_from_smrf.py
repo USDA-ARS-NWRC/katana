@@ -3,11 +3,11 @@ instantiate SMRF and use those config options to call the command line
 procedures for the Katana program
 """
 
-import numpy as np
-import dateparser
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
+import dateparser
+import numpy as np
 
 # docker paths
 image = 'usdaarsnwrc/katana:latest'

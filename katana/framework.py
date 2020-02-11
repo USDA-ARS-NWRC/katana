@@ -1,8 +1,8 @@
-import numpy as np
-import os
-from subprocess import Popen, PIPE
-from datetime import datetime
 import logging
+import os
+from datetime import datetime
+from subprocess import PIPE, Popen
+
 import coloredlogs
 
 from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
@@ -26,15 +26,19 @@ class Katana():
             buff:           WindNinja domain buffer desired (m)
             start_date:     datetime object for start date
             end_date:       datetime object for end date
-            directory:      directory containing HRRR grib2 files (directory/hrrr.<date>/hrrr*.grib2)
-            out_dir:        output directory where (out_dir/data<date>) will be written
-            wn_cfg:         file path where WindNinja config file will be stored
+            directory:      directory containing HRRR grib2
+                            files (directory/hrrr.<date>/hrrr*.grib2)
+            out_dir:        output directory where (out_dir/data<date>)
+                            will be written
+            wn_cfg:         file path where WindNinja config file
+                            will be stored
             nthreads:       number of threads used to run WindNinja
             nthreads_w:     number of threads used for wgrib2 commands
             dxy:            grid resolution for running WindNinja
             loglevel:       level for logging info
             logfile:        file where log will be stored
-            make_new_gribs: option to use existing gribs if this step has been completed
+            make_new_gribs: option to use existing gribs if this
+                            step has been completed
         """
 
         self.start_timing = datetime.now()
@@ -223,14 +227,15 @@ class Katana():
         """
 
         # create the new grib files for entire run period
-        date_list, num_list = create_new_grib(self.start_date, self.end_date,
-                                              self.directory, self.out_dir,
-                                              self.x1, self.y1, self._logger,
-                                              zone_letter=self.zone_letter,
-                                              zone_number=self.zone_number,
-                                              buff=self.buff,
-                                              nthreads_w=self.nthreads_w,
-                                              make_new_gribs=self.make_new_gribs)
+        date_list, num_list = create_new_grib(
+            self.start_date, self.end_date,
+            self.directory, self.out_dir,
+            self.x1, self.y1, self._logger,
+            zone_letter=self.zone_letter,
+            zone_number=self.zone_number,
+            buff=self.buff,
+            nthreads_w=self.nthreads_w,
+            make_new_gribs=self.make_new_gribs)
 
         # self._logger.debug(date_list)
         # make config, run wind ninja, make netcdf
@@ -238,9 +243,12 @@ class Katana():
             # if there are files
             if num_list[idd] > 0:
                 out_dir_day = os.path.join(self.out_dir,
-                                           'data{}'.format(day.strftime(self.fmt_date)), 'wind_ninja_data')
+                                           'data{}'.format(
+                                               day.strftime(self.fmt_date)),
+                                           'wind_ninja_data')
                 out_dir_wn = os.path.join(out_dir_day,
-                                          'hrrr.{}'.format(day.strftime(self.fmt_date)))
+                                          'hrrr.{}'.format(
+                                              day.strftime(self.fmt_date)))
                 # make output folder if it doesn't exist
                 if not os.path.isdir(out_dir_day):
                     os.makedirs(out_dir_day)

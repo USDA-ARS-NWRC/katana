@@ -8,12 +8,12 @@ test_katana
 Tests for an entire Katana run.
 """
 
-import unittest
-import shutil
 import os
-import numpy as np
+import unittest
+
 import dateparser
-from netCDF4 import Dataset
+import numpy as np
+
 from katana.framework import Katana
 
 
@@ -49,7 +49,8 @@ class TestStandardRME(unittest.TestCase):
         Runs the short simulation over reynolds mountain east
         """
         self.test_dir = os.path.abspath('tests/RME')
-        # check whether or not this is being ran as a single test or part of the suite
+        # check whether or not this is being ran as a single test
+        # or part of the suite
         self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
         self.zone_letter = 'N'
         self.zone_number = 11

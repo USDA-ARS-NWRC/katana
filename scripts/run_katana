@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
-import sys
-import os
 import argparse
-import numpy as np
+import os
+import sys
+from datetime import datetime
+
 import dateparser
+import numpy as np
 
 from katana.framework import Katana
 

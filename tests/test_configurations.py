@@ -1,7 +1,7 @@
-import unittest
 import os
 import shutil
-import numpy as np
+import unittest
+
 import dateparser
 
 from katana.framework import Katana
@@ -9,8 +9,9 @@ from katana.framework import Katana
 
 class KatanaTestCase(unittest.TestCase):
     """
-    The base test case for SMRF that will load in the configuration file and store as
-    the base config. Also will remove the output directory upon tear down.
+    The base test case for SMRF that will load in the configuration
+    file and store as the base config. Also will remove the output
+    directory upon tear down.
     """
 
     def setUp(self):
@@ -18,7 +19,8 @@ class KatanaTestCase(unittest.TestCase):
         Runs the short simulation over reynolds mountain east
         """
         self.test_dir = os.path.abspath('tests/RME')
-        # check whether or not this is being ran as a single test or part of the suite
+        # check whether or not this is being ran as a single
+        # test or part of the suite
         self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
         self.zone_letter = 'N'
         self.zone_number = 11
@@ -77,7 +79,8 @@ class TestConfigurations(KatanaTestCase):
                        self.logfile, self.make_new_gribs)
             k.run_katana()
             result = True
-        except:
+        except Exception as e:
+            print(e)
             result = False
 
         print('Finished test one')
@@ -95,7 +98,8 @@ class TestConfigurations(KatanaTestCase):
                        self.logfile, False)
             k.run_katana()
             result = True
-        except:
+        except Exception as e:
+            print(e)
             result = False
 
         print('Finished test two')

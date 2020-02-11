@@ -1,6 +1,8 @@
+import os
+
 import numpy as np
 from netCDF4 import Dataset
-import os
+
 
 def get_topo_stats(fp, filetype='netcdf'):
     """
@@ -53,6 +55,7 @@ def get_topo_stats(fp, filetype='netcdf'):
 
     return ts
 
+
 def netcdf_dem_to_ascii(fp_nc, fp_asc, logger, utm_let=None, utm_num=None):
     """
     Write a geotagged ascii dem for use with WindNinja
@@ -99,7 +102,6 @@ def netcdf_dem_to_ascii(fp_nc, fp_asc, logger, utm_let=None, utm_num=None):
             prj_head += 'Datum NAD83 \nZunits METERS \nUnits METERS\n'
             prj_head += 'Spheroid WGS84 \nXshift 0.0 \nYshift 0.0 \nParamters'
 
-
         # close the netcdf
         ds.close()
 
@@ -108,18 +110,13 @@ def netcdf_dem_to_ascii(fp_nc, fp_asc, logger, utm_let=None, utm_num=None):
 
         cell_size = np.abs(ts['dv'])
         # write the header
-        asc_head = "ncols {}\nnrows {}\nxllcorner {}\nyllcorner {}\ncellsize {}\nNODATA_value {}"
+        asc_head = "ncols {}\nnrows {}\nxllcorner {}\nyllcorner \
+            {}\ncellsize {}\nNODATA_value {}"
         asc_head = asc_head.format(ts['nx'], ts['ny'],
                                    np.min(ts['x'])-cell_size/2.0,
                                    np.min(ts['y'])-cell_size/2.0,
                                    np.abs(ts['dv']),
                                    fillval)
-
-
-        # prj_head = "Projection {}\nZone {}\nDatum {}\nZunits {}\nUnits {}\nSpheroid {}\nXshift {}\nYshift {}\nParamters"
-        # prj_head = prj_head.format('UTM', 11, 'NAD83', 'METERS', 'METERS', 'WGS84',
-        #                            0.0, 0.0)
-
 
         # write files
         np.savetxt(fp_asc, dem, header=asc_head, comments='')
