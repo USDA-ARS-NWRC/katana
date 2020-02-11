@@ -4,7 +4,7 @@ procedures for the Katana program
 """
 
 import numpy as np
-import pandas as pd
+import dateparser
 import os
 from subprocess import Popen, PIPE
 
@@ -19,8 +19,8 @@ out_dir1 = os.path.abspath('/home/micahsandusky/test_windninja/data')
 
 # inputs
 buff = 6000
-start_date = pd.to_datetime('2018-09-28 00:00')
-end_date = pd.to_datetime('2018-09-29 23:00')
+start_date = dateparser.parse('2018-09-28 00:00')
+end_date = dateparser.parse('2018-09-29 23:00')
 
 # wind ninja inputs
 wn_topo = os.path.join(directory, 'tuol.asc')
@@ -37,7 +37,7 @@ zone_number = 11
 fmt = '%Y%m%d-%H-%M'
 
 # derived perams
-wy_start = pd.to_datetime('2017-10-01 00:00')
+wy_start = dateparser.parse('2017-10-01 00:00')
 
 
 # make entrypoint take in the run_katana call
@@ -49,13 +49,16 @@ action = action.format(start_date.strftime(fmt),
                        end_date.strftime(fmt),
                        wy_start.strftime(fmt))
 
-action += ' --input_directory {} --output_directory {}'.format(directory, out_dir)
-action += ' --wn_topo {} --wn_prj {} --wn_cfg {}'.format(wn_topo, wn_topo_prj, wn_cfg)
-action += ' --topo {} --zn_number {} --zn_letter {}'.format(fp_dem, zone_number, zone_letter)
+action += ' --input_directory {} --output_directory {}'.format(
+    directory, out_dir)
+action += ' --wn_topo {} --wn_prj {} --wn_cfg {}'.format(
+    wn_topo, wn_topo_prj, wn_cfg)
+action += ' --topo {} --zn_number {} --zn_letter {}'.format(
+    fp_dem, zone_number, zone_letter)
 action += ' --buff {} --nthreads {} --dxy {}'.format(buff, nthreads, dxy)
 
 print('Running {}'.format(action))
-s = Popen(action, shell=True,stdout=PIPE)
+s = Popen(action, shell=True, stdout=PIPE)
 
 while True:
     line = s.stdout.readline()

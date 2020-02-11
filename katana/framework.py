@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import os
 from subprocess import Popen, PIPE
 from datetime import datetime
@@ -17,7 +16,7 @@ class Katana():
     """
 
     def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
-                 end_date, directory, out_dir,wn_cfg,
+                 end_date, directory, out_dir, wn_cfg,
                  nthreads, nthreads_w, dxy, loglevel, logfile, make_new_gribs):
         """
         Args:
@@ -114,11 +113,11 @@ class Katana():
                         'debug': {'color': 'green'},
                         'warning': {'color': 'yellow'}}
 
-        field_styles =  {'hostname': {'color': 'magenta'},
-                         'programname': {'color': 'cyan'},
-                         'name': {'color': 'white'},
-                         'levelname': {'color': 'white', 'bold': True},
-                         'asctime': {'color': 'green'}}
+        field_styles = {'hostname': {'color': 'magenta'},
+                        'programname': {'color': 'cyan'},
+                        'name': {'color': 'white'},
+                        'levelname': {'color': 'white', 'bold': True},
+                        'asctime': {'color': 'green'}}
 
         # start logging
         loglevel = loglevel.upper()
@@ -162,36 +161,36 @@ class Katana():
 
         # populate config files
         base_cfg = {
-                    'num_threads'                     : self.nthreads,
-                    'elevation_file'                  : os.path.abspath(wn_topo),
-                    'initialization_method'           : 'wxModelInitialization',
-                    'time_zone'                       : 'Atlantic/Reykjavik',
-                    'forecast_filename'               : os.path.abspath(out_dir),
-                    'forecast_duration'               : num_hours,
-                    'output_wind_height'              : 5.0,
-                    'units_output_wind_height'        : 'm',
-                    'output_speed_units'              : 'mps',
-                    'vegetation'                      : 'grass',
-                    'input_speed_units'               : 'mps',
-                    'input_wind_height'               : 10.0,
-                    'units_input_wind_height'         : 'm',
-                    'diurnal_winds'                   : True,
-                    'mesh_resolution'                 : self.dxy,
-                    'units_mesh_resolution'           : 'm',
-                    'write_goog_output'               : False,
-                    'write_shapefile_output'          : False,
-                    'write_ascii_output'              : True,
-                    'write_farsite_atm'               : False,
-                    'write_wx_model_goog_output'      : False,
-                    'write_wx_model_shapefile_output' : False,
-                    'write_wx_model_ascii_output'     : False
-                    }
+            'num_threads': self.nthreads,
+            'elevation_file': os.path.abspath(wn_topo),
+            'initialization_method': 'wxModelInitialization',
+            'time_zone': 'Atlantic/Reykjavik',
+            'forecast_filename': os.path.abspath(out_dir),
+            'forecast_duration': num_hours,
+            'output_wind_height': 5.0,
+            'units_output_wind_height': 'm',
+            'output_speed_units': 'mps',
+            'vegetation': 'grass',
+            'input_speed_units': 'mps',
+            'input_wind_height': 10.0,
+            'units_input_wind_height': 'm',
+            'diurnal_winds': True,
+            'mesh_resolution': self.dxy,
+            'units_mesh_resolution': 'm',
+            'write_goog_output': False,
+            'write_shapefile_output': False,
+            'write_ascii_output': True,
+            'write_farsite_atm': False,
+            'write_wx_model_goog_output': False,
+            'write_wx_model_shapefile_output': False,
+            'write_wx_model_ascii_output': False
+        }
 
         # write each line to config
         self._logger.info('Creating file {}'.format(self.wn_cfg))
         with open(self.wn_cfg, 'w') as f:
-            for k,v in base_cfg.items():
-                f.write('{} = {}\n'.format(k,v))
+            for k, v in base_cfg.items():
+                f.write('{} = {}\n'.format(k, v))
 
     def run_wind_ninja(self):
         """
@@ -203,7 +202,7 @@ class Katana():
 
         # run command line using Popen
         self._logger.info('Running {}'.format(action))
-        s = Popen(action, shell=True,stdout=PIPE, stderr=PIPE)
+        s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
 
         # read output from commands
         while True:
@@ -239,10 +238,9 @@ class Katana():
             # if there are files
             if num_list[idd] > 0:
                 out_dir_day = os.path.join(self.out_dir,
-                                           'data{}'.format(day.strftime(self.fmt_date))
-                                           , 'wind_ninja_data')
+                                           'data{}'.format(day.strftime(self.fmt_date)), 'wind_ninja_data')
                 out_dir_wn = os.path.join(out_dir_day,
-                                           'hrrr.{}'.format(day.strftime(self.fmt_date)))
+                                          'hrrr.{}'.format(day.strftime(self.fmt_date)))
                 # make output folder if it doesn't exist
                 if not os.path.isdir(out_dir_day):
                     os.makedirs(out_dir_day)

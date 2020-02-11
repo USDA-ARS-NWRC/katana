@@ -1,10 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from katana.get_topo import get_topo_stats
 import utm
 from subprocess import Popen, PIPE
 import os
-import pandas as pd
+import dateparser
 import datetime
 import netCDF4 as nc
 import glob
@@ -53,8 +52,10 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
         os.makedirs(dir1)
 
     # find bounds (to_latlon returns (LATITUDE, LONGITUDE).)
-    ur = np.array(utm.to_latlon(np.max(x)+buff, np.max(y)+buff, zone_number, zone_letter))
-    ll = np.array(utm.to_latlon(np.min(x)-buff, np.min(y)-buff, zone_number, zone_letter))
+    ur = np.array(utm.to_latlon(np.max(x)+buff, np.max(y) +
+                                buff, zone_number, zone_letter))
+    ll = np.array(utm.to_latlon(np.min(x)-buff, np.min(y) -
+                                buff, zone_number, zone_letter))
     # get latlon bounds
     lats = ll[0]
     latn = ur[0]
@@ -169,7 +170,10 @@ def create_new_grib(start_date, end_date, directory, out_dir,
     fmt = '%Y%m%d'
     dtt = end_date - start_date
     ndays = int(dtt.days)
-    date_list = [pd.to_datetime(start_date.date()) + datetime.timedelta(days=x) for x in range(0, ndays+1)]
+    start_midnight = datetime.datetime(
+        start_date.year, start_date.month, start_date.day)
+    date_list = [start_midnight +
+                 datetime.timedelta(days=x) for x in range(0, ndays+1)]
 
     # list to track number of hours for each day
     num_list = []
@@ -182,7 +186,7 @@ def create_new_grib(start_date, end_date, directory, out_dir,
         # loop through each hour to find file that works
         for hr_base in range(24):
             # hour we need a grib2 file for
-            file_time = dt + pd.to_timedelta(hr_base, 'h')
+            file_time = dt + datetime.timedelta(hours=hr_base)
 
             # check if we are in the date range
             if file_time >= start_date and file_time <= end_date:
@@ -210,20 +214,22 @@ def create_new_grib(start_date, end_date, directory, out_dir,
 
                         # kill job if we didn't find a good file
                         if fx_hr == 6:
-                            raise IOError('No good grib file for {}'.format(file_time.strftime('%Y-%m-%d %H')))
+                            raise IOError('No good grib file for {}'.format(
+                                file_time.strftime('%Y-%m-%d %H')))
 
                 # track hours per day
                 counter += 1
 
             else:
-                logger.warning('{} is not in date range and will not be included'.format(file_time))
+                logger.warning(
+                    '{} is not in date range and will not be included'.format(file_time))
 
         num_list.append(counter)
 
     return date_list, num_list
 
 
-def hrrr_file_name_finder(base_path, date, fx_hr = 0):
+def hrrr_file_name_finder(base_path, date, fx_hr=0):
     """
     Find the file pointer for a hrrr file with a specific forecast hour
 
@@ -236,9 +242,12 @@ def hrrr_file_name_finder(base_path, date, fx_hr = 0):
         fp:         string of absolute path to the file
 
     """
-    fmt_day ='%Y%m%d'
+    fmt_day = '%Y%m%d'
     base_path = os.path.abspath(base_path)
-    date = pd.to_datetime(date)
+
+    if not isinstance(date, datetime.datetime):
+        date = dateparser.parse(date)
+
     fx_hr = int(fx_hr)
 
     day = date.date()
@@ -248,7 +257,7 @@ def hrrr_file_name_finder(base_path, date, fx_hr = 0):
 
     # if we've dropped back a day, fix logic to reflect that
     if new_hr < 0:
-        day = day - pd.to_timedelta('1 day')
+        day = day - datetime.timedelta(days=1)
         new_hr = new_hr + 24
 
     fp = os.path.join(base_path, 'hrrr.{}'.format(day.strftime(fmt_day)),
