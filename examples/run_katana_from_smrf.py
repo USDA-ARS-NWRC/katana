@@ -3,11 +3,11 @@ instantiate SMRF and use those config options to call the command line
 procedures for the Katana program
 """
 
-import numpy as np
-import pandas as pd
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
+import dateparser
+import numpy as np
 
 # docker paths
 image = 'usdaarsnwrc/katana:latest'
@@ -17,13 +17,14 @@ topo_dir = '/data/topo'
 
 topo_dir1 = os.path.abspath('/home/micahsandusky/test_windninja/tmp_hrrr')
 directory1 = os.path.abspath('/data/snowpack/forecasts/hrrr')
-out_dir1 = os.path.abspath('/data/blizzard/tuolumne/devel/wy2017/test_windninja/data')
+out_dir1 = os.path.abspath(
+    '/data/blizzard/tuolumne/devel/wy2017/test_windninja/data')
 
 # inputs
 buff = 6000
-start_date = pd.to_datetime('2016-10-12 00:00')
-#end_date = pd.to_datetime('2016-10-20 23:00')
-end_date = pd.to_datetime('2016-10-12 23:00')
+start_date = dateparser.parse('2016-10-12 00:00')
+#end_date = dateparser.parse('2016-10-20 23:00')
+end_date = dateparser.parse('2016-10-12 23:00')
 
 # wind ninja inputs
 wn_topo = os.path.join(topo_dir, 'tuol.asc')
@@ -40,7 +41,7 @@ zone_number = 11
 fmt = '%Y%m%d-%H-%M'
 
 # derived perams
-wy_start = pd.to_datetime('2016-10-01 00:00')
+wy_start = dateparser.parse('2016-10-01 00:00')
 
 
 # make entrypoint take in the run_katana call
@@ -54,13 +55,15 @@ action = action.format(image,
                        end_date.strftime(fmt),
                        wy_start.strftime(fmt))
 
-action += ' --input_directory {} --output_directory {}'.format(directory, out_dir)
+action += ' --input_directory {} --output_directory {}'.format(
+    directory, out_dir)
 action += ' --wn_cfg {}'.format(wn_cfg)
-action += ' --topo {} --zn_number {} --zn_letter {}'.format(fp_dem, zone_number, zone_letter)
+action += ' --topo {} --zn_number {} --zn_letter {}'.format(
+    fp_dem, zone_number, zone_letter)
 action += ' --buff {} --nthreads {} --dxy {}'.format(buff, nthreads, dxy)
 
 print('Running {}'.format(action))
-s = Popen(action, shell=True,stdout=PIPE)
+s = Popen(action, shell=True, stdout=PIPE)
 
 while True:
     line = s.stdout.readline()

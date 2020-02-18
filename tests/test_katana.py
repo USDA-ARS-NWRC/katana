@@ -8,15 +8,16 @@ test_katana
 Tests for an entire Katana run.
 """
 
-import unittest
-import shutil
 import os
+import unittest
+
+import dateparser
 import numpy as np
-import pandas as pd
-from netCDF4 import Dataset
+
 from katana.framework import Katana
 
-def compare_image(gold_image,test_image):
+
+def compare_image(gold_image, test_image):
     """
     Compares two netcdfs images to and determines if they are the same.
 
@@ -28,13 +29,13 @@ def compare_image(gold_image,test_image):
         Boolean: Whether the two images were the same
     """
 
-    gold= np.loadtxt(gold_image, skiprows=6)
+    gold = np.loadtxt(gold_image, skiprows=6)
 
     rough = np.loadtxt(test_image, skiprows=6)
 
     result = np.abs(gold-rough)
 
-    return  not np.any(result>0.0)
+    return not np.any(result > 0.0)
 
 
 class TestStandardRME(unittest.TestCase):
@@ -48,7 +49,8 @@ class TestStandardRME(unittest.TestCase):
         Runs the short simulation over reynolds mountain east
         """
         self.test_dir = os.path.abspath('tests/RME')
-        # check whether or not this is being ran as a single test or part of the suite
+        # check whether or not this is being ran as a single test
+        # or part of the suite
         self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
         self.zone_letter = 'N'
         self.zone_number = 11
@@ -65,22 +67,23 @@ class TestStandardRME(unittest.TestCase):
         self.logfile = os.path.join(self.test_dir, 'output/log.txt')
         self.make_new_gribs = True
 
-        self.start_date = pd.to_datetime(start_date)
-        self.end_date = pd.to_datetime(end_date)
+        self.start_date = dateparser.parse(start_date)
+        self.end_date = dateparser.parse(end_date)
 
-        try:
-            k =  Katana(self.fp_dem, self.zone_letter,
-                        self.zone_number, self.buff,
-                        self.start_date, self.end_date,
-                        self.directory, self.out_dir,
-                        self.wn_cfg, self.nthreads,
-                        self.nthreads_w,
-                        self.dxy, self.loglevel,
-                        self.logfile, self.make_new_gribs)
-            k.run_katana()
-            result = True
-        except:
-            result = False
+        # try:
+        k = Katana(self.fp_dem, self.zone_letter,
+                   self.zone_number, self.buff,
+                   self.start_date, self.end_date,
+                   self.directory, self.out_dir,
+                   self.wn_cfg, self.nthreads,
+                   self.nthreads_w,
+                   self.dxy, self.loglevel,
+                   self.logfile, self.make_new_gribs)
+        k.run_katana()
+        result = True
+        # except Exception as e:
+        #     print(e)
+        #     result = False
 
         assert(result)
 
@@ -100,7 +103,7 @@ class TestStandardRME(unittest.TestCase):
             output_now = os.path.join(self.out_dir, hl)
 
             output_gold = os.path.join(self.test_dir, 'gold',
-                                   os.path.basename(hl))
+                                       os.path.basename(hl))
 
             print('Testing {}'.format(output_now))
             a = compare_image(output_gold, output_now)

@@ -1,15 +1,17 @@
+import os
+import shutil
 import unittest
-import os, shutil
-import numpy as np
-import pandas as pd
+
+import dateparser
 
 from katana.framework import Katana
 
 
 class KatanaTestCase(unittest.TestCase):
     """
-    The base test case for SMRF that will load in the configuration file and store as
-    the base config. Also will remove the output directory upon tear down.
+    The base test case for SMRF that will load in the configuration
+    file and store as the base config. Also will remove the output
+    directory upon tear down.
     """
 
     def setUp(self):
@@ -17,7 +19,8 @@ class KatanaTestCase(unittest.TestCase):
         Runs the short simulation over reynolds mountain east
         """
         self.test_dir = os.path.abspath('tests/RME')
-        # check whether or not this is being ran as a single test or part of the suite
+        # check whether or not this is being ran as a single
+        # test or part of the suite
         self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
         self.zone_letter = 'N'
         self.zone_number = 11
@@ -34,8 +37,8 @@ class KatanaTestCase(unittest.TestCase):
         self.logfile = os.path.join(self.test_dir, 'output/log.txt')
         self.make_new_gribs = True
 
-        self.start_date = pd.to_datetime(start_date)
-        self.end_date = pd.to_datetime(end_date)
+        self.start_date = dateparser.parse(start_date)
+        self.end_date = dateparser.parse(end_date)
 
     def tearDown(self):
         """
@@ -51,7 +54,8 @@ class KatanaTestCase(unittest.TestCase):
                 try:
                     if os.path.isfile(file_path):
                         os.unlink(file_path)
-                    elif os.path.isdir(file_path): shutil.rmtree(file_path)
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
                 except Exception as e:
                     print(e)
 
@@ -65,17 +69,18 @@ class TestConfigurations(KatanaTestCase):
 
         # Try full katana framework
         try:
-            k =  Katana(self.fp_dem, self.zone_letter,
-                        self.zone_number, self.buff,
-                        self.start_date, self.end_date,
-                        self.directory, self.out_dir,
-                        self.wn_cfg, self.nthreads,
-                        self.nthreads_w,
-                        self.dxy, self.loglevel,
-                        self.logfile, self.make_new_gribs)
+            k = Katana(self.fp_dem, self.zone_letter,
+                       self.zone_number, self.buff,
+                       self.start_date, self.end_date,
+                       self.directory, self.out_dir,
+                       self.wn_cfg, self.nthreads,
+                       self.nthreads_w,
+                       self.dxy, self.loglevel,
+                       self.logfile, self.make_new_gribs)
             k.run_katana()
             result = True
-        except:
+        except Exception as e:
+            print(e)
             result = False
 
         print('Finished test one')
@@ -83,17 +88,18 @@ class TestConfigurations(KatanaTestCase):
 
         # Try again without making new gribs
         try:
-            k =  Katana(self.fp_dem, self.zone_letter,
-                        self.zone_number, self.buff,
-                        self.start_date, self.end_date,
-                        self.directory, self.out_dir,
-                        self.wn_cfg, self.nthreads,
-                        self.nthreads_w,
-                        self.dxy, self.loglevel,
-                        self.logfile, False)
+            k = Katana(self.fp_dem, self.zone_letter,
+                       self.zone_number, self.buff,
+                       self.start_date, self.end_date,
+                       self.directory, self.out_dir,
+                       self.wn_cfg, self.nthreads,
+                       self.nthreads_w,
+                       self.dxy, self.loglevel,
+                       self.logfile, False)
             k.run_katana()
             result = True
-        except:
+        except Exception as e:
+            print(e)
             result = False
 
         print('Finished test two')

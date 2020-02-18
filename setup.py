@@ -3,11 +3,12 @@
 
 """The setup script."""
 
-from setuptools import setup, Extension, find_packages
-import numpy
 import os
 import sys
 from subprocess import check_output
+
+import numpy
+from setuptools import Extension, find_packages, setup
 
 if sys.argv[-1] != 'test':
     #Grab and write the gitVersion from 'git describe'.
