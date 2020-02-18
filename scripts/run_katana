@@ -85,6 +85,13 @@ def run():
     loglevel = args.loglevel
     have_gribs = args.have_gribs
 
+    # if dateparser fails to interpret the date it will return None
+    if start_date is None:
+        raise ValueError('Could not parse the start_date')
+
+    if end_date is None:
+        raise ValueError('Could not parse the end_date')
+
     # if we want to skip redundant conversions we already did
     make_new_gribs = True
     if have_gribs:

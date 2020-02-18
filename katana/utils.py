@@ -4,10 +4,10 @@ import dateparser
 
 
 def parse_date(value):
-    if isinstance(value, date):
-        return datetime(value.year, value.month, value.day)
-    elif isinstance(value, datetime):
+    if isinstance(value, datetime):
         return value
+    elif isinstance(value, date):
+        return datetime(value.year, value.month, value.day)
     else:
         converted = dateparser.parse(value, settings={'STRICT_PARSING': True})
         if converted is None:

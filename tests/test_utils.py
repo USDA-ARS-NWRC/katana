@@ -11,6 +11,15 @@ class TestUtils(unittest.TestCase):
         value = utils.parse_date("2019-10-1")
         self.assertEqual(datetime(2019, 10, 1), value)
 
+        value = utils.parse_date("2019-10-1 1:00")
+        self.assertEqual(datetime(2019, 10, 1, 1, 0), value)
+
+        value = utils.parse_date("2019-10-2 15:35")
+        self.assertEqual(datetime(2019, 10, 2, 15, 35), value)
+
+        value = utils.parse_date("2019-10-10 23:21")
+        self.assertEqual(datetime(2019, 10, 10, 23, 21), value)
+
     def test_parse_date_fails_int(self):
         with self.assertRaises(TypeError):
             utils.parse_date(10)
