@@ -52,7 +52,6 @@ class TestStandardRME(unittest.TestCase):
         self.test_cfg = os.path.abspath('tests/config.ini')
         self.out_dir = os.path.join(self.test_dir, 'output')
 
-
         try:
             k = Katana(self.test_cfg)
             k.run_katana()

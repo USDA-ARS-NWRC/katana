@@ -23,14 +23,24 @@ def run():
 
     p.add_argument('cfg', metavar='c', type=str,
                    help='Path to config file')
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1c526e5594f421f9bb8d3ca1e33574ff9590f302
 
     args = p.parse_args()
 
     cfg = args.cfg
+<<<<<<< HEAD
 
     if not os.path.isfile(cfg):
         raise IOError('Not a correct path to config file')
+=======
+>>>>>>> 1c526e5594f421f9bb8d3ca1e33574ff9590f302
 
+    if not os.path.isfile(cfg):
+        raise IOError('Not a correct path to config file')
+        
     # run the katana framework
     with Katana(cfg) as k:
         k.run_katana()
