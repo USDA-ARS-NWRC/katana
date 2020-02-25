@@ -47,6 +47,7 @@ class Katana():
             make_new_gribs: option to use existing gribs if this
                             step has been completed
         """
+
         if isinstance(config, str):
             if not os.path.isfile(config):
                 raise Exception('Configuration file does not exist --> {}'
@@ -105,8 +106,8 @@ class Katana():
         self.dxy = self.config['output']['dxy']
 
         # system config variables
-        self.nthreads_w = self.config['system']['nthreads_grib']
-        self.nthreads = self.config['system']['nthreads']
+        self.nthreads_w = self.config['input']['num_wgrib_threads']
+        self.nthreads = self.config['wind_ninja']['num_windninja_threads']
 
         ################################################
         # Create logger
