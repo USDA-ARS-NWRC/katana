@@ -2,8 +2,6 @@ from katana.framework import Katana
 from inicheck.tools import get_user_config, check_config
 from inicheck.tools import cast_all_variables
 from copy import deepcopy
-import numpy as np
-import dateparser
 import os
 import shutil
 import unittest
@@ -86,3 +84,21 @@ class TestConfigurations(KatanaTestCase):
 
         print('Finished test two')
         self.assertTrue(result)
+
+    def test_run_error(self):
+        """Pass a wrong config option to WindNinja
+        """
+
+        config = deepcopy(self.base_config)
+        config.raw_cfg['wind_ninja']['initialization_method'] = 'NotAnOption'
+        config.apply_recipes()
+
+        config = cast_all_variables(config, config.mcfg)
+
+        k = Katana(config)
+        with self.assertRaises(Exception) as context:
+            k.run_katana()
+
+        self.assertTrue(
+            "'initialization_method' is not a known type"
+            in str(context.exception))

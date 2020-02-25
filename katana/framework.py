@@ -25,11 +25,6 @@ class Katana():
         Arguments:
             config {string} -- path to the config file or an
                                 inicheck UserConfig object
-
-        Raises:
-            Exception: [description]
-            Exception: [description]
-            Exception: [description]
         """
 
         if isinstance(config, str):

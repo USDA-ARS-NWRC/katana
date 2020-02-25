@@ -56,10 +56,17 @@ class WindNinja:
             line = s.stdout.readline().decode()
             eline = s.stderr.readline().decode()
             self._logger.debug(line)
-            # break if we're done
-            if not line:
+
+            # if the process is done
+            if s.poll() is not None:
                 break
+
             # error if WindNinja errors
             if "Exception" in eline:
                 self._logger.error("WindNinja has an error")
                 raise Exception(eline)
+
+        if s.poll() != 0:
+            self._logger.error(
+                'WindNinja has an error, last output was: {}'.format(line))
+            raise Exception(line)
