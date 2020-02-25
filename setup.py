@@ -64,6 +64,8 @@ setup(
     license="CCO 1.0",
     # long_description=readme + '\n\n' + history,
     include_package_data=True,
+    package_data={'katana':['./CoreConfig.ini',
+				  './recipes.ini']},
     keywords='katana',
     name='katana',
     packages=['katana'],

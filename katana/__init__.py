@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 __version__ = '0.3.1'
 
-# from . import framework, get_topo, grib_crop_wgrib2, utils
+__core_config__ = os.path.abspath(
+    os.path.dirname(__file__) + '/CoreConfig.ini')
+__recipes__ = os.path.abspath(os.path.dirname(__file__) + '/recipes.ini')
+
+# from . import framework
+# from . import get_topo
+# from . import grib_crop_wgrib2
+# from . import utils
