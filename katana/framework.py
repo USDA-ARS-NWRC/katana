@@ -117,7 +117,6 @@ class Katana():
         self.out_dir = self.config['output']['out_location']
         self.make_new_gribs = self.config['output']['make_new_gribs']
         self.wn_cfg = self.config['output']['wn_cfg']
-        self.dxy = self.config['output']['dxy']
 
         # system config variables
         self.nthreads_w = self.config['input']['num_wgrib_threads']
@@ -218,6 +217,8 @@ class Katana():
                     wn_cfg,
                     self.config['output']['wn_cfg'])
                 wn.run_wind_ninja()
+
+        return True
 
     def __enter__(self):
         return self

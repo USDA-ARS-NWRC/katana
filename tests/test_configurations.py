@@ -1,51 +1,7 @@
 from katana.framework import Katana
-from inicheck.tools import get_user_config, check_config
 from inicheck.tools import cast_all_variables
-from copy import deepcopy
-import os
-import shutil
-import unittest
 
-
-class KatanaTestCase(unittest.TestCase):
-    """
-    The base test case for SMRF that will load in the configuration
-    file and store as the base config. Also will remove the output
-    directory upon tear down.
-    """
-
-    def setUp(self):
-        """
-        Runs the short simulation over reynolds mountain east
-        """
-        self.test_dir = os.path.abspath('tests/RME')
-
-        # check whether or not this is being ran as a single
-        # test or part of the suite
-
-        self.test_cfg = os.path.abspath('tests/config.ini')
-        # read in the base configuration
-        self.base_config = get_user_config(self.test_cfg,
-                                           modules=['katana'])
-
-    def tearDown(self):
-        """
-        Clean up the output directory
-        """
-
-        folder = os.path.join(self.test_dir, 'output')
-        nodelete = os.path.join(folder, '.keep')
-        for the_file in os.listdir(folder):
-            file_path = os.path.join(folder, the_file)
-            if file_path != nodelete:
-                pass
-                try:
-                    if os.path.isfile(file_path):
-                        os.unlink(file_path)
-                    elif os.path.isdir(file_path):
-                        shutil.rmtree(file_path)
-                except Exception as e:
-                    print(e)
+from tests.test_base import KatanaTestCase
 
 
 class TestConfigurations(KatanaTestCase):
@@ -68,9 +24,8 @@ class TestConfigurations(KatanaTestCase):
         self.assertTrue(result)
 
         # Try again without making new gribs
-        config = deepcopy(self.base_config)
-        config.raw_cfg['output']['make_new_gribs'] = False
-        config.apply_recipes()
+        config = self.change_config_option(
+            'output', 'make_new_gribs', False)
 
         config = cast_all_variables(config, config.mcfg)
 
@@ -85,15 +40,12 @@ class TestConfigurations(KatanaTestCase):
         print('Finished test two')
         self.assertTrue(result)
 
-    def test_run_error(self):
-        """Pass a wrong config option to WindNinja
+    def test_wind_ninja_error_init_method(self):
+        """Pass a wrong config option for initialization method to WindNinja
         """
 
-        config = deepcopy(self.base_config)
-        config.raw_cfg['wind_ninja']['initialization_method'] = 'NotAnOption'
-        config.apply_recipes()
-
-        config = cast_all_variables(config, config.mcfg)
+        config = self.change_config_option(
+            'wind_ninja', 'initialization_method', 'AmericaNotAnOption')
 
         k = Katana(config)
         with self.assertRaises(Exception) as context:
@@ -102,3 +54,70 @@ class TestConfigurations(KatanaTestCase):
         self.assertTrue(
             "'initialization_method' is not a known type"
             in str(context.exception))
+
+    def test_wind_ninja_time_zone(self):
+        """Time zone config for WindNinja
+        """
+
+        config = self.change_config_option(
+            'input', 'time_zone', 'UTC')
+
+        k = Katana(config)
+        with self.assertRaises(Exception) as context:
+            k.run_katana()
+
+        self.assertTrue(
+            ("The time zone string: UTC does not match any in the time"
+             " zone database file: date_time_zonespec.csv.")
+            in str(context.exception))
+
+        config = self.change_config_option(
+            'input', 'time_zone', 'America/Denver')
+
+        k = Katana(config)
+        self.assertTrue(k.run_katana())
+
+
+class TestInputConfigurations(KatanaTestCase):
+    """Test the input configuration options
+    """
+
+    def test_input_directory(self):
+        """Test input directory error
+        """
+
+        config = self.change_config_option(
+            'input', 'directory', '/tmp')
+
+        k = Katana(config)
+        with self.assertRaises(Exception) as context:
+            k.run_katana()
+
+        self.assertTrue("No good grib file for 2018-10-01 20"
+                        in str(context.exception))
+
+    def test_input_data_type(self):
+        """Test input data type error
+        """
+
+        config = self.change_config_option(
+            'input', 'data_type', 'not_a_datatype')
+
+        with self.assertRaises(Exception) as context:
+            Katana(config)
+
+        self.assertTrue("Not an approved input datatype"
+                        in str(context.exception))
+
+    def test_input_buffer(self):
+        """Test input buffer
+        """
+
+        config = self.change_config_option(
+            'input', 'buffer', 3000)
+        k = Katana(config)
+        self.assertTrue(isinstance(k, Katana))
+
+        config = self.change_config_option(
+            'input', 'buffer', '3000')
+        self.assertTrue(isinstance(k, Katana))
