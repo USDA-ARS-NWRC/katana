@@ -13,7 +13,7 @@ class TestConfigurations(KatanaTestCase):
 
         # Try full katana framework
         try:
-            k = Katana(self.test_cfg)
+            k = Katana(self.test_config)
             k.run_katana()
             result = True
         except Exception as e:
@@ -51,28 +51,25 @@ class TestConfigurations(KatanaTestCase):
         with self.assertRaises(Exception) as context:
             k.run_katana()
 
-        self.assertTrue(
-            "'initialization_method' is not a known type"
-            in str(context.exception))
+        self.assertTrue("WindNinja has an error"
+                        in str(context.exception))
 
     def test_wind_ninja_time_zone(self):
         """Time zone config for WindNinja
         """
 
         config = self.change_config_option(
-            'input', 'time_zone', 'UTC')
+            'wind_ninja', 'time_zone', 'UTC')
 
         k = Katana(config)
         with self.assertRaises(Exception) as context:
             k.run_katana()
 
-        self.assertTrue(
-            ("The time zone string: UTC does not match any in the time"
-             " zone database file: date_time_zonespec.csv.")
-            in str(context.exception))
+        self.assertTrue("WindNinja has an error"
+                        in str(context.exception))
 
         config = self.change_config_option(
-            'input', 'time_zone', 'America/Denver')
+            'wind_ninja', 'time_zone', 'America/Denver')
 
         k = Katana(config)
         self.assertTrue(k.run_katana())

@@ -62,37 +62,65 @@ def grib_to_sgrib(fp_in, out_dir, file_dt, x, y, logger,
     lone = ur[1]
 
     # call to crop grid
-    action = 'wgrib2 {} -ncpu {} -small_grib \
-        {}:{} {}:{} {}'.format(fp_in, nthreads_w,
-                               lonw, lone,
-                               lats, latn, tmp_grib)
+    action = 'wgrib2 {} -ncpu {} -small_grib {}:{} {}:{} {}'.format(
+        fp_in, nthreads_w,
+        lonw, lone,
+        lats, latn, tmp_grib)
 
-    # run commands
-    logger.debug('\nRunning command {}'.format(action))
-    s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
+    # # run commands
+    # logger.debug('Running command "{}"'.format(action))
+    # s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
 
-    # initialize failure as true, we have to succeed to change this
-    fatl = True
-    while True:
-        line = s.stdout.readline().decode()
-        eline = s.stderr.readline().decode()
+    # run command line using Popen
+    logger.info('Running "{}"'.format(action))
+    s = Popen(action, shell=True, stdout=PIPE,
+              stderr=PIPE, universal_newlines=True)
 
-        if not line:
-            break
+    # stream the output of WindNinja to the logger
+    output = []
+    fatl = False
+    with s.stdout:
+        for line in iter(s.stdout.readline, ""):
+            logger.debug(line.rstrip())
+            output.append(line.rstrip())
 
+    with s.stderr:
+        eline = s.stderr.readline()
         # if it failed, find a different forecast hour
         if "FATAL" in eline:
             fatl = True
-            break
         else:
             fatl = False
 
+    # if errors then create an exception
+    return_code = s.wait()
+    if return_code:
+        for line in output:
+            logger.warning(line)
+        fatl = True
+
+    # # initialize failure as true, we have to succeed to change this
+    # fatl = True
+    # while True:
+    #     # line = s.stdout.readline().decode()
+    #     eline = s.stderr.readline().decode()
+
+    #     # if not line:
+    #     #     break
+
+    #     # if it failed, find a different forecast hour
+    #     if "FATAL" in eline:
+    #         fatl = True
+    #         break
+    #     else:
+    #         fatl = False
+
     # trying to find better grib file
     if fatl:
-        del(s)
+        # del(s)
         os.remove(tmp_grib)
 
-        logger.warning('\nsmall grib did not work, trying a forecast hour\n')
+        logger.warning('small grib did not work, trying a forecast hour')
 
     return not fatl, tmp_grib, fp_out
 

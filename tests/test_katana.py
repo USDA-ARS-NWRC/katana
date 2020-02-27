@@ -11,10 +11,10 @@ Tests for an entire Katana run.
 import os
 import unittest
 
-import dateparser
 import numpy as np
 
 from katana.framework import Katana
+from tests.test_base import KatanaTestCase
 
 
 def compare_image(gold_image, test_image):
@@ -38,33 +38,43 @@ def compare_image(gold_image, test_image):
     return not np.any(result > 0.0)
 
 
-class TestStandardRME(unittest.TestCase):
+class TestStandardRME(KatanaTestCase):
     """
     Integration test for Katana using Reynolds Mountain East
     """
 
-    @classmethod
-    def setUpClass(self):
-        """
-        Runs the short simulation over reynolds mountain east
-        """
-        self.test_dir = os.path.abspath('tests/RME')
-        self.test_cfg = os.path.abspath('tests/config.ini')
-        self.out_dir = os.path.join(self.test_dir, 'output')
+    # @classmethod
+    # def setUpClass(self):
+    #     """
+    #     Runs the short simulation over reynolds mountain east
+    #     """
+    #     self.test_dir = os.path.abspath('tests/RME')
+    #     self.test_config = os.path.abspath('tests/config.ini')
+    #     self.out_dir = os.path.join(self.test_dir, 'output')
 
-        try:
-            k = Katana(self.test_cfg)
-            k.run_katana()
-            result = True
-        except:
-            result = False
+    #     try:
+    #         k = Katana(self.test_config)
+    #         k.run_katana()
+    #         result = True
+    #     except Exception:
+    #         result = False
 
-        assert(result)
+    #     assert(result)
 
     def test_image(self):
         """
         Check each hour against gold standard
         """
+
+        try:
+            k = Katana(self.test_config)
+            k.run_katana()
+            result = True
+        except Exception as e:
+            print(e)
+            result = False
+
+        assert(result)
 
         d1 = 'data20181001/wind_ninja_data'
         hour_list = ['{}/topo_windninja_topo_10-01-2018_2000_50m_vel.asc',
@@ -79,12 +89,4 @@ class TestStandardRME(unittest.TestCase):
             output_gold = os.path.join(self.test_dir, 'gold',
                                        os.path.basename(hl))
 
-            print('Testing {}'.format(output_now))
-            a = compare_image(output_gold, output_now)
-            print(a)
-
-            assert(a)
-
-
-if __name__ == '__main__':
-    unittest.main()
+            self.assertTrue(compare_image(output_gold, output_now))

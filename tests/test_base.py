@@ -18,14 +18,13 @@ class KatanaTestCase(unittest.TestCase):
         """
         Runs the short simulation over reynolds mountain east
         """
+
         self.test_dir = os.path.abspath('tests/RME')
+        self.test_config = os.path.abspath('tests/config.ini')
+        self.out_dir = os.path.join(self.test_dir, 'output')
 
-        # check whether or not this is being ran as a single
-        # test or part of the suite
-
-        self.test_cfg = os.path.abspath('tests/config.ini')
         # read in the base configuration
-        self.base_config = get_user_config(self.test_cfg,
+        self.base_config = get_user_config(self.test_config,
                                            modules=['katana'])
 
     def tearDown(self):
