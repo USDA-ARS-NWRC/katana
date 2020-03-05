@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from copy import deepcopy
 import coloredlogs
 
@@ -11,6 +11,7 @@ from inicheck.output import print_config_report
 from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
 from katana.grib_crop_wgrib2 import create_new_grib
 from katana.wind_ninja import WindNinja
+from katana import utils
 
 
 class Katana():
@@ -108,6 +109,9 @@ class Katana():
         self.end_date = self.config['time']['end_date']
         self.fmt_date = '%Y%m%d'
 
+        # create an hourly time step between the start date and end date
+        self.date_list = utils.daterange(self.start_date, self.end_date)
+
         self.buff = self.config['input']['buffer']
         self.data_type = self.config['input']['data_type']
         self.directory = self.config['input']['directory']
@@ -181,8 +185,8 @@ class Katana():
         """
 
         # create the new grib files for entire run period
-        date_list, num_list = create_new_grib(
-            self.start_date, self.end_date,
+        out_files = create_new_grib(
+            self.date_list,
             self.directory, self.out_dir,
             self.x1, self.y1, self._logger,
             zone_letter=self.zone_letter,
@@ -193,30 +197,38 @@ class Katana():
 
         # self._logger.debug(date_list)
         # make config, run wind ninja, make netcdf
-        for idd, day in enumerate(date_list):
+        # get list of days to grab
+        dtt = self.end_date - self.start_date
+        ndays = int(dtt.days)
+        start_midnight = datetime(
+            self.start_date.year, self.start_date.month, self.start_date.day)
+        day_list = [start_midnight +
+                    timedelta(days=x) for x in range(0, ndays+1)]
+
+        for idd, day in enumerate(day_list):
             # if there are files
-            if num_list[idd] > 0:
-                out_dir_day = os.path.join(self.out_dir,
-                                           'data{}'.format(
-                                               day.strftime(self.fmt_date)),
-                                           'wind_ninja_data')
-                out_dir_wn = os.path.join(out_dir_day,
-                                          'hrrr.{}'.format(
-                                              day.strftime(self.fmt_date)))
-                # make output folder if it doesn't exist
-                if not os.path.isdir(out_dir_day):
-                    os.makedirs(out_dir_day)
+            # if num_list[idd] > 0:
+            out_dir_day = os.path.join(self.out_dir,
+                                       'data{}'.format(
+                                           day.strftime(self.fmt_date)),
+                                       'wind_ninja_data')
+            out_dir_wn = os.path.join(out_dir_day,
+                                      'hrrr.{}'.format(
+                                          day.strftime(self.fmt_date)))
+            # make output folder if it doesn't exist
+            if not os.path.isdir(out_dir_day):
+                os.makedirs(out_dir_day)
 
-                # run WindNinja_cli
-                wn_cfg = deepcopy(self.config['wind_ninja'])
-                wn_cfg['forecast_filename'] = os.path.abspath(out_dir_wn)
-                wn_cfg['forecast_duration'] = num_list[idd]
-                wn_cfg['elevation_file'] = self.wn_topo
+            # run WindNinja_cli
+            wn_cfg = deepcopy(self.config['wind_ninja'])
+            wn_cfg['forecast_filename'] = out_dir_wn
+            wn_cfg['forecast_duration'] = 0  # num_list[idd]
+            wn_cfg['elevation_file'] = self.wn_topo
 
-                wn = WindNinja(
-                    wn_cfg,
-                    self.config['output']['wn_cfg'])
-                wn.run_wind_ninja()
+            wn = WindNinja(
+                wn_cfg,
+                self.config['output']['wn_cfg'])
+            wn.run_wind_ninja()
 
         return True
 

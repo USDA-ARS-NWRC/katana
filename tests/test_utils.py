@@ -34,3 +34,23 @@ class TestUtils(unittest.TestCase):
         expected = datetime(2019, 10, 1)
         value = utils.parse_date(to_convert)
         self.assertEqual(value, expected)
+
+    def test_date_range(self):
+
+        start_date = datetime(2019, 10, 1, 1)
+        end_date = datetime(2019, 10, 1, 5)
+
+        date_list = utils.daterange(start_date, end_date)
+
+        self.assertTrue(len(date_list) == 5)
+        self.assertTrue(date_list[0] == start_date)
+        self.assertTrue(date_list[-1] == end_date)
+
+        start_date = datetime(2017, 7, 2, 1)
+        end_date = datetime(2017, 7, 3, 5)
+
+        date_list = utils.daterange(start_date, end_date)
+
+        self.assertTrue(len(date_list) == 29)
+        self.assertTrue(date_list[0] == start_date)
+        self.assertTrue(date_list[-1] == end_date)

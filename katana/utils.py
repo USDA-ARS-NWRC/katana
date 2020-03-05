@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from inicheck.checkers import CheckType
 import dateparser
 
@@ -14,6 +14,29 @@ def parse_date(value):
             raise TypeError("{} is not a date".format(value))
 
         return converted
+
+
+def daterange(start_date, end_date, delta=timedelta(hours=1)):
+    """Create a `datetime` list between the start and end date
+    by a given timedelta.
+
+    Arguments:
+        start_date {datetime} -- start date
+        end_date {datetime} -- end date
+
+    Keyword Arguments:
+        delta {timedelta} -- timedelta for the step (default: {timedelta(hours=1)})
+
+    Returns:
+        [list] -- List of `datetime` objects
+    """
+
+    dr = []
+    while start_date <= end_date:
+        dr.append(start_date)
+        start_date += delta
+
+    return dr
 
 
 class CheckRawString(CheckType):
