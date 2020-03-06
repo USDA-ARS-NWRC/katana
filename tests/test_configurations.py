@@ -1,6 +1,4 @@
 from katana.framework import Katana
-from inicheck.tools import cast_all_variables
-
 from tests.test_base import KatanaTestCase
 
 

@@ -1,19 +1,18 @@
+import argparse
 import logging
 import os
-import sys
-import argparse
-from datetime import datetime, timedelta
 from copy import deepcopy
+from datetime import datetime
+
 import coloredlogs
-
 from inicheck.config import MasterConfig, UserConfig
-from inicheck.tools import get_user_config, check_config
 from inicheck.output import print_config_report
+from inicheck.tools import check_config, get_user_config
 
+from katana import utils
 from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
 from katana.grib_crop_wgrib2 import create_new_grib
 from katana.wind_ninja import WindNinja
-from katana import utils
 
 
 def cli():

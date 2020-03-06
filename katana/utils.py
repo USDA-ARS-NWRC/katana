@@ -1,6 +1,7 @@
-from datetime import date, datetime, timedelta, date
-from inicheck.checkers import CheckType
+from datetime import date, datetime, timedelta
+
 import dateparser
+from inicheck.checkers import CheckType
 
 
 def parse_date(value):
@@ -25,7 +26,8 @@ def daterange(start_date, end_date, delta=timedelta(hours=1)):
         end_date {datetime} -- end date
 
     Keyword Arguments:
-        delta {timedelta} -- timedelta for the step (default: {timedelta(hours=1)})
+        delta {timedelta} -- timedelta for the step
+                    (default: {timedelta(hours=1)})
 
     Returns:
         [list] -- List of `datetime` objects
@@ -74,7 +76,7 @@ class CheckRawString(CheckType):
         Do not change the passed value at all
 
         Args:
-            value: A single string 
+            value: A single string
         Returns:
             value: A single string unchanged
         """

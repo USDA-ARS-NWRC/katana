@@ -1,13 +1,11 @@
 import datetime
-import os
 import glob
+import os
 from subprocess import PIPE, Popen
 
 import dateparser
 import numpy as np
 import utm
-
-from katana import utils
 
 fmt1 = '%Y%m%d'
 fmt2 = '%H'
@@ -234,7 +232,8 @@ def create_new_grib(date_list, directory, out_dir,
                         dt.strftime('%Y-%m-%d %H')))
 
     else:
-        logger.info('Make new gribs set to False, no grib files were processed')
+        logger.info(("Make new gribs set to False,"
+                     " no grib files were processed"))
         for day in out_files.keys():
             dir1 = os.path.join(out_dir,
                                 'data{}'.format(day.strftime(fmt1)),

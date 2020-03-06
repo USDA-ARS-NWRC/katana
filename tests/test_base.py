@@ -2,9 +2,9 @@ import os
 import shutil
 import unittest
 from copy import deepcopy
+
 import numpy as np
-from inicheck.tools import cast_all_variables
-from inicheck.tools import get_user_config
+from inicheck.tools import cast_all_variables, get_user_config
 
 from katana.framework import Katana
 
@@ -71,7 +71,8 @@ class KatanaTestCase(unittest.TestCase):
         """Assert that the gold files match
 
         Keyword Arguments:
-            assert_true {bool} -- either assertTrue or assertFalse (default: {True})
+            assert_true {bool} -- either assertTrue or
+                assertFalse (default: {True})
         """
 
         d1 = 'data20181001/wind_ninja_data'

@@ -1,5 +1,4 @@
 import logging
-import os
 from subprocess import PIPE, Popen
 
 

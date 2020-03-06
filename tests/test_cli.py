@@ -1,6 +1,7 @@
 
-from unittest.mock import patch
 import sys
+from unittest.mock import patch
+
 from katana.framework import cli
 from tests.test_base import KatanaTestCase
 
