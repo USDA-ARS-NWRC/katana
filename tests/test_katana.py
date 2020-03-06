@@ -30,9 +30,7 @@ def compare_image(gold_image, test_image):
     """
 
     gold = np.loadtxt(gold_image, skiprows=6)
-
     rough = np.loadtxt(test_image, skiprows=6)
-
     result = np.abs(gold-rough)
 
     return not np.any(result > 0.0)
@@ -42,24 +40,6 @@ class TestStandardRME(KatanaTestCase):
     """
     Integration test for Katana using Reynolds Mountain East
     """
-
-    # @classmethod
-    # def setUpClass(self):
-    #     """
-    #     Runs the short simulation over reynolds mountain east
-    #     """
-    #     self.test_dir = os.path.abspath('tests/RME')
-    #     self.test_config = os.path.abspath('tests/config.ini')
-    #     self.out_dir = os.path.join(self.test_dir, 'output')
-
-    #     try:
-    #         k = Katana(self.test_config)
-    #         k.run_katana()
-    #         result = True
-    #     except Exception:
-    #         result = False
-
-    #     assert(result)
 
     def test_image(self):
         """
