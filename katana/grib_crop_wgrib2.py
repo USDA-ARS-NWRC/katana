@@ -1,5 +1,6 @@
 import datetime
 import os
+import glob
 from subprocess import PIPE, Popen
 
 import dateparser
@@ -7,6 +8,9 @@ import numpy as np
 import utm
 
 from katana import utils
+
+fmt1 = '%Y%m%d'
+fmt2 = '%H'
 
 
 def call_wgrib2(action, logger):
@@ -70,8 +74,6 @@ def grib_to_small_grib(fp_in, out_dir, file_dt, x, y, logger,
     """
     # date format for files
     # fmt = '%Y%m%d-%H-%M'
-    fmt1 = '%Y%m%d'
-    fmt2 = '%H'
     dir1 = os.path.join(out_dir,
                         'data{}'.format(file_dt.strftime(fmt1)),
                         'wind_ninja_data',
@@ -183,22 +185,25 @@ def create_new_grib(date_list, directory, out_dir,
         outputs new hrrr grib2 files in out_dir
     """
 
+    fx_start_hour = 0
+
     logger.info('Creating new gribs for topo domain')
 
-    # # create an hourly time step between the start date and end date
-    # date_list = utils.daterange(start_date, end_date)
+    # create a datelist dict to hold the files
+    out_files = {}
+    for dt in date_list:
+        if dt.date() not in out_files.keys():
+            out_files[dt.date()] = 0
 
     # option to cut down on already completed work
     if make_new_gribs:
-
-        out_files = []
 
         # loop through dates
         for idt, dt in enumerate(date_list):
             logger.info('Working on grib file for {}'.format(dt))
 
             # try different forecast hours to get a working file
-            for fx_hr in range(0, 8):
+            for fx_hr in range(fx_start_hour, fx_start_hour+8):
                 fp = hrrr_file_name_finder(directory, dt, fx_hr)
 
                 # convert grib to smaller gribs with only the needed
@@ -220,7 +225,7 @@ def create_new_grib(date_list, directory, out_dir,
                     status = sgrib_variable_crop(tmp_grib, nthreads_w,
                                                  fp_out, logger)
                     if status:
-                        out_files.append(fp_out)
+                        out_files[dt.date()] += 1
                         break
 
                 # kill job if we didn't find a good file
@@ -230,6 +235,14 @@ def create_new_grib(date_list, directory, out_dir,
 
     else:
         logger.info('Make new gribs set to False, no grib files were processed')
+        for day in out_files.keys():
+            dir1 = os.path.join(out_dir,
+                                'data{}'.format(day.strftime(fmt1)),
+                                'wind_ninja_data',
+                                'hrrr.{}'.format(day.strftime(fmt1)))
+
+            files = glob.glob1(dir1, '*.grib2')
+            out_files[day] = len(files)
 
     return out_files
 

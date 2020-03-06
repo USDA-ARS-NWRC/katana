@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, date
 from inicheck.checkers import CheckType
 import dateparser
 
@@ -37,6 +37,28 @@ def daterange(start_date, end_date, delta=timedelta(hours=1)):
         start_date += delta
 
     return dr
+
+
+def daylist(start_date, end_date):
+    """Create a list of days between two dates
+
+    Arguments:
+        start_date {datetime.datetime} -- start date for list
+        end_date {datetime.datetime} -- end date for list
+
+    Returns:
+        list -- list of days between the provided dates
+    """
+
+    # get list of days to grab
+    dtt = end_date - start_date
+    ndays = int(dtt.days)
+    start_midnight = date(
+        start_date.year, start_date.month, start_date.day)
+    day_list = [start_midnight +
+                timedelta(days=x) for x in range(0, ndays+1)]
+
+    return day_list
 
 
 class CheckRawString(CheckType):

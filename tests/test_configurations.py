@@ -6,40 +6,6 @@ from tests.test_base import KatanaTestCase
 
 class TestConfigurations(KatanaTestCase):
 
-    def test_base_run(self):
-        """
-        Test if the full Katana suite can run
-        """
-
-        # Try full katana framework
-        try:
-            k = Katana(self.test_config)
-            k.run_katana()
-            result = True
-        except Exception as e:
-            print(e)
-            result = False
-
-        print('Finished test one')
-        self.assertTrue(result)
-
-        # Try again without making new gribs
-        config = self.change_config_option(
-            'output', 'make_new_gribs', False)
-
-        config = cast_all_variables(config, config.mcfg)
-
-        try:
-            k = Katana(config)
-            k.run_katana()
-            result = True
-        except Exception as e:
-            print(e)
-            result = False
-
-        print('Finished test two')
-        self.assertTrue(result)
-
     def test_wind_ninja_error_init_method(self):
         """Pass a wrong config option for initialization method to WindNinja
         """

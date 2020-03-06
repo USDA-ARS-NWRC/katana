@@ -112,6 +112,9 @@ class Katana():
         # create an hourly time step between the start date and end date
         self.date_list = utils.daterange(self.start_date, self.end_date)
 
+        # create a daily list between the start and end date
+        self.day_list = utils.daylist(self.start_date, self.end_date)
+
         self.buff = self.config['input']['buffer']
         self.data_type = self.config['input']['data_type']
         self.directory = self.config['input']['directory']
@@ -185,7 +188,7 @@ class Katana():
         """
 
         # create the new grib files for entire run period
-        out_files = create_new_grib(
+        num_files = create_new_grib(
             self.date_list,
             self.directory, self.out_dir,
             self.x1, self.y1, self._logger,
@@ -195,19 +198,14 @@ class Katana():
             nthreads_w=self.nthreads_w,
             make_new_gribs=self.make_new_gribs)
 
-        # self._logger.debug(date_list)
         # make config, run wind ninja, make netcdf
-        # get list of days to grab
-        dtt = self.end_date - self.start_date
-        ndays = int(dtt.days)
-        start_midnight = datetime(
-            self.start_date.year, self.start_date.month, self.start_date.day)
-        day_list = [start_midnight +
-                    timedelta(days=x) for x in range(0, ndays+1)]
+        for idd, day in enumerate(self.day_list):
+            self._logger.info('Running WindNinja for day {}'.format(day))
+            self._logger.debug(
+                '{} input files will be ran'.format(num_files[day]))
 
-        for idd, day in enumerate(day_list):
-            # if there are files
-            # if num_list[idd] > 0:
+            start_time = datetime.now()
+
             out_dir_day = os.path.join(self.out_dir,
                                        'data{}'.format(
                                            day.strftime(self.fmt_date)),
@@ -215,6 +213,7 @@ class Katana():
             out_dir_wn = os.path.join(out_dir_day,
                                       'hrrr.{}'.format(
                                           day.strftime(self.fmt_date)))
+
             # make output folder if it doesn't exist
             if not os.path.isdir(out_dir_day):
                 os.makedirs(out_dir_day)
@@ -230,14 +229,19 @@ class Katana():
                 self.config['output']['wn_cfg'])
             wn.run_wind_ninja()
 
+            telapsed = datetime.now() - start_time
+            self._logger.debug('Running day took {} sec'.format(
+                telapsed.total_seconds()))
+
+        self.run_time()
         return True
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def run_time(self):
         """
-        Provide some logging info about when AWSM was closed
+        Provide some logging info about when Katana was closed
         """
         run_timing = datetime.now() - self.start_timing
         self._logger.info('Katana ran in: {}'.format(run_timing))

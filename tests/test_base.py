@@ -6,6 +6,8 @@ from copy import deepcopy
 from inicheck.tools import cast_all_variables
 from inicheck.tools import get_user_config
 
+from katana.framework import Katana
+
 
 class KatanaTestCase(unittest.TestCase):
     """
@@ -46,8 +48,25 @@ class KatanaTestCase(unittest.TestCase):
                 except Exception as e:
                     print(e)
 
+    def run_katana(self, config_file=None):
+        """Run katana for the given config file
+        """
+        if config_file is None:
+            config_file = self.test_config
+
+        try:
+            k = Katana(config_file)
+            k.run_katana()
+            result = True
+        except Exception as e:
+            print(e)
+            result = False
+
+        return result
+
     def change_config_option(self, section, option, value, config=None):
-        """[summary]
+        """Change a configuration option in the config file. Either pass
+        a UserConfig object or copy the base config to begin modifying.
 
         Arguments:
             section {str} -- config section name
