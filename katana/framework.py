@@ -1,5 +1,7 @@
 import logging
 import os
+import sys
+import argparse
 from datetime import datetime, timedelta
 from copy import deepcopy
 import coloredlogs
@@ -12,6 +14,26 @@ from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
 from katana.grib_crop_wgrib2 import create_new_grib
 from katana.wind_ninja import WindNinja
 from katana import utils
+
+
+def cli():
+    '''
+    katana is a command line program designed to take a config file. This
+    will be fed to the run_katana function within framework.
+    '''
+
+    # Parse arguments
+    p = argparse.ArgumentParser(
+        description='Run Katana, the WindNinja wrapper.')
+
+    p.add_argument('cfg', type=str,
+                   help='Path to config file')
+
+    args = p.parse_args()
+
+    # run the katana framework
+    with Katana(args.cfg) as k:
+        k.run_katana()
 
 
 class Katana():
@@ -238,6 +260,9 @@ class Katana():
 
     def __enter__(self):
         return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        pass
 
     def run_time(self):
         """

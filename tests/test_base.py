@@ -2,11 +2,30 @@ import os
 import shutil
 import unittest
 from copy import deepcopy
-
+import numpy as np
 from inicheck.tools import cast_all_variables
 from inicheck.tools import get_user_config
 
 from katana.framework import Katana
+
+
+def compare_image(gold_image, test_image):
+    """
+    Compares two netcdfs images to and determines if they are the same.
+
+    Args:
+        v_name: Name with in the file contains
+        gold_image: File containing gold standard results
+        test_image: File containing test results to be compared
+    Returns:
+        Boolean: Whether the two images were the same
+    """
+
+    gold = np.loadtxt(gold_image, skiprows=6)
+    rough = np.loadtxt(test_image, skiprows=6)
+    result = np.abs(gold-rough)
+
+    return not np.any(result > 0.0)
 
 
 class KatanaTestCase(unittest.TestCase):
@@ -47,6 +66,30 @@ class KatanaTestCase(unittest.TestCase):
                         shutil.rmtree(file_path)
                 except Exception as e:
                     print(e)
+
+    def assertGold(self, assert_true=True):
+        """Assert that the gold files match
+
+        Keyword Arguments:
+            assert_true {bool} -- either assertTrue or assertFalse (default: {True})
+        """
+
+        d1 = 'data20181001/wind_ninja_data'
+        hour_list = ['{}/topo_windninja_topo_10-01-2018_2000_50m_vel.asc',
+                     '{}/topo_windninja_topo_10-01-2018_2100_50m_vel.asc',
+                     '{}/topo_windninja_topo_10-01-2018_2200_50m_vel.asc',
+                     '{}/topo_windninja_topo_10-01-2018_2300_50m_vel.asc']
+        hour_list = [hl.format(d1) for hl in hour_list]
+
+        for hl in hour_list:
+            output_now = os.path.join(self.out_dir, hl)
+
+            output_gold = os.path.join(self.test_dir, 'gold',
+                                       os.path.basename(hl))
+            if assert_true:
+                self.assertTrue(compare_image(output_gold, output_now))
+            else:
+                self.assertFalse(compare_image(output_gold, output_now))
 
     def run_katana(self, config_file=None):
         """Run katana for the given config file

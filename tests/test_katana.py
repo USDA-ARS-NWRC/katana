@@ -8,32 +8,8 @@ test_katana
 Tests for an entire Katana run.
 """
 
-import os
-import unittest
-
-import numpy as np
-
 from katana.framework import Katana
 from tests.test_base import KatanaTestCase
-
-
-def compare_image(gold_image, test_image):
-    """
-    Compares two netcdfs images to and determines if they are the same.
-
-    Args:
-        v_name: Name with in the file contains
-        gold_image: File containing gold standard results
-        test_image: File containing test results to be compared
-    Returns:
-        Boolean: Whether the two images were the same
-    """
-
-    gold = np.loadtxt(gold_image, skiprows=6)
-    rough = np.loadtxt(test_image, skiprows=6)
-    result = np.abs(gold-rough)
-
-    return not np.any(result > 0.0)
 
 
 class TestStandardRME(KatanaTestCase):
@@ -54,21 +30,7 @@ class TestStandardRME(KatanaTestCase):
             result = False
 
         assert(result)
-
-        d1 = 'data20181001/wind_ninja_data'
-        hour_list = ['{}/topo_windninja_topo_10-01-2018_2000_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2100_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2200_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2300_50m_vel.asc']
-        hour_list = [hl.format(d1) for hl in hour_list]
-
-        for hl in hour_list:
-            output_now = os.path.join(self.out_dir, hl)
-
-            output_gold = os.path.join(self.test_dir, 'gold',
-                                       os.path.basename(hl))
-
-            self.assertTrue(compare_image(output_gold, output_now))
+        self.assertGold()
 
     def test_gold_error(self):
         """ Change config to not produce same output as gold file
@@ -78,22 +40,9 @@ class TestStandardRME(KatanaTestCase):
             'wind_ninja', 'output_wind_height', 10.0)
 
         result = self.run_katana(config)
+
         assert(result)
-
-        d1 = 'data20181001/wind_ninja_data'
-        hour_list = ['{}/topo_windninja_topo_10-01-2018_2000_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2100_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2200_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2300_50m_vel.asc']
-        hour_list = [hl.format(d1) for hl in hour_list]
-
-        for hl in hour_list:
-            output_now = os.path.join(self.out_dir, hl)
-
-            output_gold = os.path.join(self.test_dir, 'gold',
-                                       os.path.basename(hl))
-
-            self.assertFalse(compare_image(output_gold, output_now))
+        self.assertGold(assert_true=False)
 
     def test_make_new_gribs(self):
         """
