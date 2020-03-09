@@ -6,6 +6,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/02c98487a2fdd524e6e9/maintainability)](https://codeclimate.com/github/USDA-ARS-NWRC/katana/maintainability)
 
 # katana
+
 A project for bringing [WindNinja] simulations into the AWSM system.
 
 [WindNinja]: https://github.com/firelab/windninja
@@ -46,7 +47,7 @@ To obtain HRRR simulations, we recommend [`weather_forecast_retrieval`](https://
 
 The folder structure is grouped into days with the `hrrr.YYYYMMDD` format. Each file is labeled with the initialization hour `**IH**` and the forecast hour `**FH**`.
 
-```
+```bash
 hrrr/
     hrrr.**YYYYMMDD**/
         hrrr.t**IH**z.wrfsfcf**FH**.grib2
@@ -57,18 +58,18 @@ hrrr/
 ## Installing Katana Locally
 
 The `katana` dependancies are:
+
 - WindNinja, see [install here](https://github.com/firelab/windninja/wiki)
   - Includes `GDAL` and `PROJ`
 - [wgrib2](https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/)
   
 To install `katana` locally, run `pip install -r requirements_dev.txt`.
 
-
 ## Command Line Usage
 
 `katana` provides a command line interface called `run_katana`. The only argument to `run_katana` is the path to the configuration file. For example, to run the test configuration
 
-```
+```bash
 run_katana tests/config.ini
 ```
 
@@ -78,30 +79,33 @@ run_katana tests/config.ini
 
 `run_katana` is the default entrypoint to the `katana` docker image.
 
-```
+```bash
 docker run --rm  -v </path/to/topo/folder>:/data/topo -v </path/to/input/data>:/data/input   -v </path/to/output>:/data/output  --user 1008:4 usdaarsnwrc/katana /data/topo/katana_config.ini
 ```
 
 ## Outputs
+
 There are three types of files generated from Katana:
- - **An ascii topo**: This is an ascii version of the dem for SMRF. This will only be generated if it does not exist.
- - **grib2 files**: Katana will generate the cropped HRRR files with only the necessary variables and put them in the wind_ninja_data folder inside your run specific data directory.
- - **ascii outputs**: Currently Katana is set up to run WindNinja, letting WindNinja output ascii files for wind speed, direction, and cloud cover. There are more output data types available, but this makes the most sense for AWSM modeling.
+
+- **An ascii topo**: This is an ascii version of the dem for SMRF. This will only be generated if it does not exist.
+- **grib2 files**: Katana will generate the cropped HRRR files with only the necessary variables and put them in the wind_ninja_data folder inside your run specific data directory.
+- **ascii outputs**: Currently Katana is set up to run WindNinja, letting WindNinja output ascii files for wind speed, direction, and cloud cover. There are more output data types available, but this makes the most sense for AWSM modeling.
 
 ### Ingesting into SMRF
+
 SMRF has the ability to read in the WindNinja output ascii wind speed and direction and interpolate them onto the SMRF grid. Here is what that looks like in the `[wind]` section of the SMRF config.
 
-```
+```bash
 wind_ninja_dir: </path/to/input/data>
 wind_ninja_dxy: 200
-wind_ninja_pref: topo_windninja_topo
+wind_ninja_topo_suffix: _windninja_topo
 wind_ninja_tz: UTC
 ```
 
-When Katana outputs the ascii topo, it will append `windninja_topo` to the original name of the topo NetCDF. This `wind_ninja_pref` config option is everything before the date, grid resolution, and ***.asc*** that WindNinja adds to the topo name. For instance, this example is for the file pattern of `topo_windninja_topo_10-01-2018_0900_200m_vel.asc`. Notice the `wind_ninja_dxy` of 200 matches the `200m` in the WindNinja output file name.
-
+When Katana outputs the ascii topo, it will append `wind_ninja_topo_suffix` to the original name of the topo NetCDF. This `wind_ninja_topo_suffix` config option is everything before the date, grid resolution, and ***.asc*** that WindNinja adds to the topo name. For instance, this example is for the file pattern of `topo_windninja_topo_10-01-2018_0900_200m_vel.asc`. Notice the `wind_ninja_dxy` of 200 matches the `200m` in the WindNinja output file name.
 
 # Wind Ninja
+
 WindNinja is a computationally efficient wind solver developed for on-site predictions of wind when firefighting. It is a great tool for our real-time modeling efforts. There two ways to run WindNinja and multiple types of input data. We use the HRRR grib2 files, and run it using the command line interface (CLI).
 
 Wind Ninja can use two different types of solvers: a mass solver or a mass and momentum solver. The mass and momentum solver will be more accurate, but is considerably slower and requires install of some OpenFOAM utilities. This would be a great tool for research, but doesn't fit with our near real-time runs. As such, we use the mass solver.

@@ -99,12 +99,15 @@ class Katana():
         self.wn_prefix = os.path.splitext(os.path.basename(self.fp_dem))[0]
 
         # write ascii dem for WindNinja
-        topo_add = '_windninja_topo'
         dir_topo = os.path.dirname(self.fp_dem)
-        self.wn_topo = os.path.join(dir_topo,
-                                    self.wn_prefix+topo_add+'.asc')
-        self.wn_topo_prj = os.path.join(dir_topo,
-                                        self.wn_prefix+topo_add+'.prj')
+        self.wn_topo = os.path.join(dir_topo, '{}{}.asc'.format(
+            self.wn_prefix, self.config['topo']['wind_ninja_topo_suffix']
+        ))
+
+        self.wn_topo_prj = os.path.join(dir_topo, '{}{}.prj'.format(
+            self.wn_prefix, self.config['topo']['wind_ninja_topo_suffix']
+        ))
+
         # write new files
         netcdf_dem_to_ascii(self.fp_dem, self.wn_topo, self._logger,
                             utm_let=self.zone_letter, utm_num=self.zone_number)
@@ -121,6 +124,7 @@ class Katana():
             None
         """
 
+        # topo section
         self.fp_dem = self.config['topo']['filename']
         self.zone_letter = self.config['topo']['zone_letter']
         self.zone_number = self.config['topo']['zone_number']
@@ -242,7 +246,7 @@ class Katana():
             # run WindNinja_cli
             wn_cfg = deepcopy(self.config['wind_ninja'])
             wn_cfg['forecast_filename'] = out_dir_wn
-            wn_cfg['forecast_duration'] = 0  # num_list[idd]
+            # wn_cfg['forecast_duration'] = 0  # num_list[idd]
             wn_cfg['elevation_file'] = self.wn_topo
 
             wn = WindNinja(

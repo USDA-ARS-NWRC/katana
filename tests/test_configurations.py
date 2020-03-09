@@ -1,5 +1,27 @@
+import os
+
 from katana.framework import Katana
 from tests.test_base import KatanaTestCase
+
+
+class TestTopoConfigurations(KatanaTestCase):
+    """Test the topo configuration options
+    """
+
+    def test_topo_wind_ninja_topo_suffix(self):
+        """Test topo wind_ninja_topo_suffix
+        """
+
+        k = Katana(self.test_config)
+        self.assertEquals(os.path.basename(k.wn_topo),
+                          'topo_windninja_topo.asc')
+
+        config = self.change_config_option(
+            'topo', 'wind_ninja_topo_suffix', 'test_name')
+
+        k = Katana(config)
+        self.assertEquals(os.path.basename(k.wn_topo),
+                          'topotest_name.asc')
 
 
 class TestConfigurations(KatanaTestCase):
