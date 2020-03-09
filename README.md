@@ -49,8 +49,8 @@ The folder structure is grouped into days with the `hrrr.YYYYMMDD` format. Each 
 
 ```bash
 hrrr/
-    hrrr.**YYYYMMDD**/
-        hrrr.t**IH**z.wrfsfcf**FH**.grib2
+    hrrr.<YYYYMMDD>/
+        hrrr.t<IH>z.wrfsfcf<FH>.grib2
 ```
 
 # Using Katana
