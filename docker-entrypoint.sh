@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-run_katana='python3 /code/katana/scripts/run_katana'
+run_katana='python3 /usr/local/bin/run_katana'
 
 if [ $# -eq 0 ]; then
     umask 0002

@@ -1,12 +1,39 @@
+import argparse
 import logging
 import os
+import sys
+from copy import deepcopy
 from datetime import datetime
-from subprocess import PIPE, Popen
 
 import coloredlogs
+from inicheck.config import MasterConfig, UserConfig
+from inicheck.output import print_config_report
+from inicheck.tools import check_config, get_user_config
 
+from katana import utils
 from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
 from katana.grib_crop_wgrib2 import create_new_grib
+from katana.wind_ninja import WindNinja
+
+
+def cli():
+    '''
+    katana is a command line program designed to take a config file. This
+    will be fed to the run_katana function within framework.
+    '''
+
+    # Parse arguments
+    p = argparse.ArgumentParser(
+        description='Run Katana, the WindNinja wrapper.')
+
+    p.add_argument('cfg', type=str,
+                   help='Path to config file')
+
+    args = p.parse_args()
+
+    # run the katana framework
+    with Katana(args.cfg) as k:
+        k.run_katana()
 
 
 class Katana():
@@ -15,74 +42,74 @@ class Katana():
     context of the USDA ARS snow-water supply modeling workflow
     """
 
-    def __init__(self, fp_dem, zone_letter, zone_number, buff, start_date,
-                 end_date, directory, out_dir, wn_cfg,
-                 nthreads, nthreads_w, dxy, loglevel, logfile, make_new_gribs):
-        """
-        Args:
-            fp_dem:         path to netcdf topo file used for smrf
-            zone_letter:    UTM zone letter (probably N)
-            zone_number:    UTM zone letter
-            buff:           WindNinja domain buffer desired (m)
-            start_date:     datetime object for start date
-            end_date:       datetime object for end date
-            directory:      directory containing HRRR grib2
-                            files (directory/hrrr.<date>/hrrr*.grib2)
-            out_dir:        output directory where (out_dir/data<date>)
-                            will be written
-            wn_cfg:         file path where WindNinja config file
-                            will be stored
-            nthreads:       number of threads used to run WindNinja
-            nthreads_w:     number of threads used for wgrib2 commands
-            dxy:            grid resolution for running WindNinja
-            loglevel:       level for logging info
-            logfile:        file where log will be stored
-            make_new_gribs: option to use existing gribs if this
-                            step has been completed
+    def __init__(self, config):
+        """[summary]
+
+        Arguments:
+            config {string} -- path to the config file or an
+                                inicheck UserConfig object
         """
 
+        if isinstance(config, str):
+            if not os.path.isfile(config):
+                raise Exception('Configuration file does not exist --> {}'
+                                .format(config))
+
+            try:
+                # Read in the original users config
+                self.ucfg = get_user_config(config, modules='katana')
+
+            except UnicodeDecodeError as e:
+                print(e)
+                raise Exception(('The configuration file is not encoded in '
+                                 'UTF-8, please change and retry'))
+
+        elif isinstance(config, UserConfig):
+            self.ucfg = config
+
+        else:
+            raise Exception(
+                'Config passed to Katana is neither file name nor \
+                    UserConfig instance')
+
+        self.config_file = self.ucfg.filename
+
+        warnings, errors = check_config(self.ucfg)
+        print_config_report(warnings, errors)
+        self.config = self.ucfg.cfg
+
+        if len(errors) > 0:
+            raise Exception("Error in config file. Check report above.")
+
         self.start_timing = datetime.now()
+
         ################################################
         # Start parsing the arguments
         ################################################
-        self.fp_dem = fp_dem
-        self.zone_letter = zone_letter
-        self.zone_number = zone_number
-        self.buff = buff
-
-        # find start and end dates
-        self.start_date = start_date
-        self.end_date = end_date
-
-        self.fmt_date = '%Y%m%d'
-        self.directory = directory
-        self.out_dir = out_dir
-
-        self.nthreads_w = nthreads_w
-
-        self.make_new_gribs = make_new_gribs
+        self.parse_config()
 
         ################################################
         # Create logger
         ################################################
-        self.create_log(loglevel, logfile)
+        self.create_log()
 
         ################################################
         # Find WindNinja parameters
         ################################################
-        # wind ninja inputs
-        self.wn_cfg = os.path.abspath(wn_cfg)
+
         # prefix that wind ninja will use in the file naming convention
         self.wn_prefix = os.path.splitext(os.path.basename(self.fp_dem))[0]
-        self.nthreads = nthreads
 
         # write ascii dem for WindNinja
-        topo_add = '_windninja_topo'
         dir_topo = os.path.dirname(self.fp_dem)
-        self.wn_topo = os.path.join(dir_topo,
-                                    self.wn_prefix+topo_add+'.asc')
-        self.wn_topo_prj = os.path.join(dir_topo,
-                                        self.wn_prefix+topo_add+'.prj')
+        self.wn_topo = os.path.join(dir_topo, '{}{}.asc'.format(
+            self.wn_prefix, self.config['topo']['wind_ninja_topo_suffix']
+        ))
+
+        self.wn_topo_prj = os.path.join(dir_topo, '{}{}.prj'.format(
+            self.wn_prefix, self.config['topo']['wind_ninja_topo_suffix']
+        ))
+
         # write new files
         netcdf_dem_to_ascii(self.fp_dem, self.wn_topo, self._logger,
                             utm_let=self.zone_letter, utm_num=self.zone_number)
@@ -91,21 +118,54 @@ class Katana():
         self.ts = get_topo_stats(self.fp_dem)
         self.x1 = self.ts['x']
         self.y1 = self.ts['y']
-        # WindNinja grid spacing
-        self.dxy = dxy
 
-    def create_log(self, loglevel, logfile):
+    def parse_config(self):
+        """Parse the config file variables for running katana
+
+        Raises:
+            None
+        """
+
+        # topo section
+        self.fp_dem = self.config['topo']['filename']
+        self.zone_letter = self.config['topo']['zone_letter']
+        self.zone_number = self.config['topo']['zone_number']
+
+        # find start and end dates
+        self.start_date = self.config['time']['start_date']
+        self.end_date = self.config['time']['end_date']
+        self.fmt_date = '%Y%m%d'
+
+        # create an hourly time step between the start date and end date
+        self.date_list = utils.daterange(self.start_date, self.end_date)
+
+        # create a daily list between the start and end date
+        self.day_list = utils.daylist(self.start_date, self.end_date)
+
+        self.buff = self.config['input']['buffer']
+        self.data_type = self.config['input']['data_type']
+        self.directory = self.config['input']['directory']
+        if self.data_type != 'hrrr':
+            raise IOError('Not an approved input datatype')
+
+        self.out_dir = self.config['output']['out_location']
+        self.make_new_gribs = self.config['output']['make_new_gribs']
+        self.wn_cfg = self.config['output']['wn_cfg']
+
+        # system config variables
+        self.nthreads_w = self.config['input']['num_wgrib_threads']
+
+    def create_log(self):
         '''
         Create logger and log file. If logfile is None,
         the logger will print to the screen with colored logs.
 
-        Args:
-            loglevel:   level of information from logs (debug, info, etc)
-            logfile:    location of file where log will be written
-
         Returns:
-            creates a logger
+            None, creates a logger
         '''
+
+        loglevel = self.config['logging']['log_level']
+        logfile = self.config['logging']['log_file']
 
         level_styles = {'info': {'color': 'white'},
                         'notice': {'color': 'magenta'},
@@ -147,79 +207,7 @@ class Katana():
                                 field_styles=field_styles)
 
         self._loglevel = numeric_level
-
         self._logger = logging.getLogger(__name__)
-
-    def make_wn_cfg(self, out_dir, wn_topo, num_hours):
-        """
-        Edit and write the config file options for the WindNinja program
-
-        Args:
-            out_dir:
-            wn_topo:
-            num_hours:
-
-        Result:
-            Writes WindNinja config file
-        """
-
-        # populate config files
-        base_cfg = {
-            'num_threads': self.nthreads,
-            'elevation_file': os.path.abspath(wn_topo),
-            'initialization_method': 'wxModelInitialization',
-            'time_zone': 'Atlantic/Reykjavik',
-            'forecast_filename': os.path.abspath(out_dir),
-            'forecast_duration': num_hours,
-            'output_wind_height': 5.0,
-            'units_output_wind_height': 'm',
-            'output_speed_units': 'mps',
-            'vegetation': 'grass',
-            'input_speed_units': 'mps',
-            'input_wind_height': 10.0,
-            'units_input_wind_height': 'm',
-            'diurnal_winds': True,
-            'mesh_resolution': self.dxy,
-            'units_mesh_resolution': 'm',
-            'write_goog_output': False,
-            'write_shapefile_output': False,
-            'write_ascii_output': True,
-            'write_farsite_atm': False,
-            'write_wx_model_goog_output': False,
-            'write_wx_model_shapefile_output': False,
-            'write_wx_model_ascii_output': False
-        }
-
-        # write each line to config
-        self._logger.info('Creating file {}'.format(self.wn_cfg))
-        with open(self.wn_cfg, 'w') as f:
-            for k, v in base_cfg.items():
-                f.write('{} = {}\n'.format(k, v))
-
-    def run_wind_ninja(self):
-        """
-        Create the command line call to run the WindNinja_cli
-
-        """
-        # construct call
-        action = 'WindNinja_cli {}'.format(self.wn_cfg)
-
-        # run command line using Popen
-        self._logger.info('Running {}'.format(action))
-        s = Popen(action, shell=True, stdout=PIPE, stderr=PIPE)
-
-        # read output from commands
-        while True:
-            line = s.stdout.readline().decode()
-            eline = s.stderr.readline().decode()
-            self._logger.debug(line)
-            # break if we're done
-            if not line:
-                break
-            # error if WindNinja errors
-            if "Exception" in eline:
-                self._logger.error("WindNinja has an error")
-                raise Exception(eline)
 
     def run_katana(self):
         """
@@ -227,8 +215,8 @@ class Katana():
         """
 
         # create the new grib files for entire run period
-        date_list, num_list = create_new_grib(
-            self.start_date, self.end_date,
+        num_files = create_new_grib(
+            self.date_list,
             self.directory, self.out_dir,
             self.x1, self.y1, self._logger,
             zone_letter=self.zone_letter,
@@ -237,33 +225,53 @@ class Katana():
             nthreads_w=self.nthreads_w,
             make_new_gribs=self.make_new_gribs)
 
-        # self._logger.debug(date_list)
         # make config, run wind ninja, make netcdf
-        for idd, day in enumerate(date_list):
-            # if there are files
-            if num_list[idd] > 0:
-                out_dir_day = os.path.join(self.out_dir,
-                                           'data{}'.format(
-                                               day.strftime(self.fmt_date)),
-                                           'wind_ninja_data')
-                out_dir_wn = os.path.join(out_dir_day,
-                                          'hrrr.{}'.format(
-                                              day.strftime(self.fmt_date)))
-                # make output folder if it doesn't exist
-                if not os.path.isdir(out_dir_day):
-                    os.makedirs(out_dir_day)
+        for idd, day in enumerate(self.day_list):
+            self._logger.info('Running WindNinja for day {}'.format(day))
+            self._logger.debug(
+                '{} input files will be ran'.format(num_files[day]))
 
-                # run WindNinja_cli
-                self.make_wn_cfg(out_dir_wn, self.wn_topo, num_list[idd])
+            start_time = datetime.now()
 
-                self.run_wind_ninja()
+            out_dir_day = os.path.join(self.out_dir,
+                                       'data{}'.format(
+                                           day.strftime(self.fmt_date)),
+                                       'wind_ninja_data')
+            out_dir_wn = os.path.join(out_dir_day,
+                                      'hrrr.{}'.format(
+                                          day.strftime(self.fmt_date)))
+
+            # make output folder if it doesn't exist
+            if not os.path.isdir(out_dir_day):
+                os.makedirs(out_dir_day)
+
+            # run WindNinja_cli
+            wn_cfg = deepcopy(self.config['wind_ninja'])
+            wn_cfg['forecast_filename'] = out_dir_wn
+            # wn_cfg['forecast_duration'] = 0  # num_list[idd]
+            wn_cfg['elevation_file'] = self.wn_topo
+
+            wn = WindNinja(
+                wn_cfg,
+                self.config['output']['wn_cfg'])
+            wn.run_wind_ninja()
+
+            telapsed = datetime.now() - start_time
+            self._logger.debug('Running day took {} sec'.format(
+                telapsed.total_seconds()))
+
+        self.run_time()
+        return True
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exception_type, exception_value, traceback):
+        pass
+
+    def run_time(self):
         """
-        Provide some logging info about when AWSM was closed
+        Provide some logging info about when Katana was closed
         """
         run_timing = datetime.now() - self.start_timing
         self._logger.info('Katana ran in: {}'.format(run_timing))

@@ -1,106 +1,105 @@
 import os
-import shutil
-import unittest
-
-import dateparser
 
 from katana.framework import Katana
+from tests.test_base import KatanaTestCase
 
 
-class KatanaTestCase(unittest.TestCase):
-    """
-    The base test case for SMRF that will load in the configuration
-    file and store as the base config. Also will remove the output
-    directory upon tear down.
+class TestTopoConfigurations(KatanaTestCase):
+    """Test the topo configuration options
     """
 
-    def setUp(self):
-        """
-        Runs the short simulation over reynolds mountain east
-        """
-        self.test_dir = os.path.abspath('tests/RME')
-        # check whether or not this is being ran as a single
-        # test or part of the suite
-        self.fp_dem = os.path.join(self.test_dir, 'topo/topo.nc')
-        self.zone_letter = 'N'
-        self.zone_number = 11
-        self.buff = 6000
-        start_date = '2018-10-01 20:00'
-        end_date = '2018-10-01 23:00'
-        self.directory = os.path.join(self.test_dir, 'input')
-        self.out_dir = os.path.join(self.test_dir, 'output')
-        self.wn_cfg = os.path.join(self.test_dir, 'output/wn_cfg.txt')
-        self.nthreads = 1
-        self.nthreads_w = 1
-        self.dxy = 50
-        self.loglevel = 'info'
-        self.logfile = os.path.join(self.test_dir, 'output/log.txt')
-        self.make_new_gribs = True
-
-        self.start_date = dateparser.parse(start_date)
-        self.end_date = dateparser.parse(end_date)
-
-    def tearDown(self):
-        """
-        Clean up the output directory
+    def test_topo_wind_ninja_topo_suffix(self):
+        """Test topo wind_ninja_topo_suffix
         """
 
-        folder = os.path.join(self.test_dir, 'output')
-        nodelete = os.path.join(folder, '.keep')
-        for the_file in os.listdir(folder):
-            file_path = os.path.join(folder, the_file)
-            if file_path != nodelete:
-                pass
-                try:
-                    if os.path.isfile(file_path):
-                        os.unlink(file_path)
-                    elif os.path.isdir(file_path):
-                        shutil.rmtree(file_path)
-                except Exception as e:
-                    print(e)
+        k = Katana(self.test_config)
+        self.assertEquals(os.path.basename(k.wn_topo),
+                          'topo_windninja_topo.asc')
+
+        config = self.change_config_option(
+            'topo', 'wind_ninja_topo_suffix', 'test_name')
+
+        k = Katana(config)
+        self.assertEquals(os.path.basename(k.wn_topo),
+                          'topotest_name.asc')
 
 
 class TestConfigurations(KatanaTestCase):
 
-    def test_base_run(self):
+    def test_wind_ninja_error_init_method(self):
+        """Pass a wrong config option for initialization method to WindNinja
         """
-        Test if the full Katana suite can run
+
+        config = self.change_config_option(
+            'wind_ninja', 'initialization_method', 'AmericaNotAnOption')
+
+        with self.assertRaises(Exception) as context:
+            k = Katana(config)
+
+        self.assertTrue("Error in config file"
+                        in str(context.exception))
+
+    def test_wind_ninja_time_zone(self):
+        """Time zone config for WindNinja
         """
 
-        # Try full katana framework
-        try:
-            k = Katana(self.fp_dem, self.zone_letter,
-                       self.zone_number, self.buff,
-                       self.start_date, self.end_date,
-                       self.directory, self.out_dir,
-                       self.wn_cfg, self.nthreads,
-                       self.nthreads_w,
-                       self.dxy, self.loglevel,
-                       self.logfile, self.make_new_gribs)
+        config = self.change_config_option(
+            'wind_ninja', 'time_zone', 'UTC')
+
+        k = Katana(config)
+        with self.assertRaises(Exception) as context:
             k.run_katana()
-            result = True
-        except Exception as e:
-            print(e)
-            result = False
 
-        print('Finished test one')
-        self.assertTrue(result)
+        self.assertTrue("WindNinja has an error"
+                        in str(context.exception))
 
-        # Try again without making new gribs
-        try:
-            k = Katana(self.fp_dem, self.zone_letter,
-                       self.zone_number, self.buff,
-                       self.start_date, self.end_date,
-                       self.directory, self.out_dir,
-                       self.wn_cfg, self.nthreads,
-                       self.nthreads_w,
-                       self.dxy, self.loglevel,
-                       self.logfile, False)
+        config = self.change_config_option(
+            'wind_ninja', 'time_zone', 'America/Denver')
+
+        k = Katana(config)
+        self.assertTrue(k.run_katana())
+
+
+class TestInputConfigurations(KatanaTestCase):
+    """Test the input configuration options
+    """
+
+    def test_input_directory(self):
+        """Test input directory error
+        """
+
+        config = self.change_config_option(
+            'input', 'directory', '/tmp')
+
+        k = Katana(config)
+        with self.assertRaises(Exception) as context:
             k.run_katana()
-            result = True
-        except Exception as e:
-            print(e)
-            result = False
 
-        print('Finished test two')
-        self.assertTrue(result)
+        self.assertTrue("No good grib file for 2018-10-01 20"
+                        in str(context.exception))
+
+    def test_input_data_type(self):
+        """Test input data type error
+        """
+
+        config = self.change_config_option(
+            'input', 'data_type', 'not_a_datatype')
+
+        with self.assertRaises(Exception) as context:
+            Katana(config)
+
+        self.assertTrue("Error in config file"
+                        in str(context.exception))
+
+    def test_input_buffer(self):
+        """Test input buffer
+        """
+
+        config = self.change_config_option(
+            'input', 'buffer', 3000)
+        k = Katana(config)
+        self.assertTrue(isinstance(k, Katana))
+
+        config = self.change_config_option(
+            'input', 'buffer', '3000')
+        self.assertTrue(isinstance(k, Katana))
