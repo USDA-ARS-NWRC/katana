@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import sys
 from copy import deepcopy
 from datetime import datetime
 
@@ -55,11 +56,8 @@ class Katana():
                                 .format(config))
 
             try:
-                mcfg = MasterConfig(modules=['katana'])
-
                 # Read in the original users config
-                self.ucfg = get_user_config(config, mcfg=mcfg)
-                self.config_file = config
+                self.ucfg = get_user_config(config, modules='katana')
 
             except UnicodeDecodeError as e:
                 print(e)
@@ -68,16 +66,20 @@ class Katana():
 
         elif isinstance(config, UserConfig):
             self.ucfg = config
-            self.config_file = ''
 
         else:
             raise Exception(
                 'Config passed to Katana is neither file name nor \
                     UserConfig instance')
 
+        self.config_file = self.ucfg.filename
+
         warnings, errors = check_config(self.ucfg)
         print_config_report(warnings, errors)
         self.config = self.ucfg.cfg
+
+        if len(errors) > 0:
+            raise Exception("Error in config file. Check report above.")
 
         self.start_timing = datetime.now()
 

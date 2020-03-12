@@ -47,7 +47,7 @@ def call_wgrib2(action, logger):
 
 
 def grib_to_small_grib(fp_in, out_dir, file_dt, x, y, logger,
-                       buff=1500, zone_letter='N', zone_number=11,
+                       buff=6000, zone_letter='N', zone_number=11,
                        nthreads_w=1):
     """
     Function to write 4 bands from grib2 to cropped grib2

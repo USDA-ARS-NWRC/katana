@@ -33,11 +33,10 @@ class TestConfigurations(KatanaTestCase):
         config = self.change_config_option(
             'wind_ninja', 'initialization_method', 'AmericaNotAnOption')
 
-        k = Katana(config)
         with self.assertRaises(Exception) as context:
-            k.run_katana()
+            k = Katana(config)
 
-        self.assertTrue("WindNinja has an error"
+        self.assertTrue("Error in config file"
                         in str(context.exception))
 
     def test_wind_ninja_time_zone(self):
@@ -89,7 +88,7 @@ class TestInputConfigurations(KatanaTestCase):
         with self.assertRaises(Exception) as context:
             Katana(config)
 
-        self.assertTrue("Not an approved input datatype"
+        self.assertTrue("Error in config file"
                         in str(context.exception))
 
     def test_input_buffer(self):

@@ -30,7 +30,7 @@ def compare_image(gold_image, test_image):
 
 class KatanaTestCase(unittest.TestCase):
     """
-    The base test case for SMRF that will load in the configuration
+    The base test case for Katana that will load in the configuration
     file and store as the base config. Also will remove the output
     directory upon tear down.
     """
