@@ -1,5 +1,6 @@
 .vscode
 .venv
+.devcontainer
 
 # Examples files
 examples/*/*/maxus*.nc
