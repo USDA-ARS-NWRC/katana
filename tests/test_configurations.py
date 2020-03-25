@@ -60,7 +60,7 @@ class TestConfigurations(KatanaTestCase):
         self.assertTrue(k.run_katana())
 
 
-class TestInputConfigurations(KatanaTestCase):
+class TestInputHRRRConfigurations(KatanaTestCase):
     """Test the input configuration options
     """
 
@@ -69,7 +69,7 @@ class TestInputConfigurations(KatanaTestCase):
         """
 
         config = self.change_config_option(
-            'input', 'directory', '/tmp')
+            'input', 'hrrr_directory', '/tmp')
 
         k = Katana(config)
         with self.assertRaises(Exception) as context:
@@ -96,10 +96,10 @@ class TestInputConfigurations(KatanaTestCase):
         """
 
         config = self.change_config_option(
-            'input', 'buffer', 3000)
+            'input', 'hrrr_buffer', 3000)
         k = Katana(config)
         self.assertTrue(isinstance(k, Katana))
 
         config = self.change_config_option(
-            'input', 'buffer', '3000')
+            'input', 'hrrr_buffer', '3000')
         self.assertTrue(isinstance(k, Katana))

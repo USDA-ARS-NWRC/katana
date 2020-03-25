@@ -1,7 +1,6 @@
 from copy import deepcopy
 
 from inicheck.tools import cast_all_variables
-from inicheck.utilities import pcfg
 
 from tests.test_base import KatanaTestCase
 
@@ -11,8 +10,13 @@ class TestRecipes(KatanaTestCase):
     """
 
     def cast_recipes(self, config):
-        """
-        Cast the inicheck recipes
+        """Cast the inicheck recipes
+
+        Arguments:
+            config {UserConfig} -- UserConfig object to modify
+
+        Returns:
+            UserConfig -- Modified UserConfig object
         """
 
         config.apply_recipes()
@@ -21,9 +25,16 @@ class TestRecipes(KatanaTestCase):
         return config
 
     def master_config(self, config):
-        """
-        Create a master config dictionary with a
+        """Create a master config dictionary with a
         list of the keys
+
+        Arguments:
+            config {UserConfig} -- UserConfig object to create
+                a master config from
+
+        Returns:
+            [dict] -- master_config dict that has all sections
+                and items from the provided UserConfig
         """
 
         master_config = {}
@@ -33,8 +44,13 @@ class TestRecipes(KatanaTestCase):
         return master_config
 
     def check_config(self, config, master_config):
-        """ Check that the config read by inicheck matches
+        """Check that the config read by inicheck matches
         the master_config (expected) results
+
+        Arguments:
+            config {inicheck UserConfig} -- UserConfig object to check
+            master_config {dict} -- dict of sections and items
+                that should be in the UserConfig
         """
 
         # ensure that there are no
@@ -59,14 +75,13 @@ class TestRecipes(KatanaTestCase):
 
         # make changes
         master_config['input'] = [
-                'data_type',
-                'hrrr_directory',
-                'hrrr_buffer',
-                'hrrr_num_wgrib_threads'
-            ]
+            'data_type',
+            'hrrr_directory',
+            'hrrr_buffer',
+            'hrrr_num_wgrib_threads'
+        ]
 
         self.check_config(config, master_config)
-
 
     def test_wrf_recipe(self):
         """Test the wrf recipe
@@ -82,13 +97,9 @@ class TestRecipes(KatanaTestCase):
 
         # make changes
         master_config['input'] = [
-                'data_type',
-                'wrf_filename'
-            ]
+            'data_type',
+            'wrf_filename'
+        ]
         master_config['output'].remove('make_new_gribs')
 
         self.check_config(config, master_config)
-
-
-
-        

@@ -142,9 +142,9 @@ class Katana():
         # create a daily list between the start and end date
         self.day_list = utils.daylist(self.start_date, self.end_date)
 
-        self.buff = self.config['input']['buffer']
+        self.buff = self.config['input']['hrrr_buffer']
         self.data_type = self.config['input']['data_type']
-        self.directory = self.config['input']['directory']
+        self.directory = self.config['input']['hrrr_directory']
         if self.data_type != 'hrrr':
             raise IOError('Not an approved input datatype')
 
@@ -153,7 +153,7 @@ class Katana():
         self.wn_cfg = self.config['output']['wn_cfg']
 
         # system config variables
-        self.nthreads_w = self.config['input']['num_wgrib_threads']
+        self.nthreads_w = self.config['input']['hrrr_num_wgrib_threads']
 
     def create_log(self):
         '''
