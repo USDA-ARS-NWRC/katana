@@ -91,14 +91,14 @@ class Katana():
         self.create_log()
 
         ################################################
-        # Initialize the input data
-        ################################################
-        self.initialize_input_data()
-
-        ################################################
         # Initialize the topo
         ################################################
         self.topo = Topo(self.config)
+
+        ################################################
+        # Initialize the input data
+        ################################################
+        self.initialize_input_data()
 
         self._logger.debug('Katana initialized')
 
@@ -187,8 +187,7 @@ class Katana():
         self._logger.info('Initializing input data')
 
         if self.data_type == 'hrrr':
-            # check smrf on how it's done
-            self.input_data = NomadsHRRR(self.config)
+            self.input_data = NomadsHRRR(self.config, self.topo)
 
     def run_katana(self):
         """

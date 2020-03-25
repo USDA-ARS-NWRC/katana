@@ -13,14 +13,14 @@ class TestTopoConfigurations(KatanaTestCase):
         """
 
         k = Katana(self.test_config)
-        self.assertEquals(os.path.basename(k.wn_topo),
+        self.assertEquals(os.path.basename(k.topo.windninja_topo),
                           'topo_windninja_topo.asc')
 
         config = self.change_config_option(
             'topo', 'wind_ninja_topo_suffix', 'test_name')
 
         k = Katana(config)
-        self.assertEquals(os.path.basename(k.wn_topo),
+        self.assertEquals(os.path.basename(k.topo.windninja_topo),
                           'topotest_name.asc')
 
 
@@ -34,7 +34,7 @@ class TestConfigurations(KatanaTestCase):
             'wind_ninja', 'initialization_method', 'AmericaNotAnOption')
 
         with self.assertRaises(Exception) as context:
-            k = Katana(config)
+            Katana(config)
 
         self.assertTrue("Error in config file"
                         in str(context.exception))

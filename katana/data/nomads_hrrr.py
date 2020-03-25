@@ -10,16 +10,18 @@ from katana import utils
 
 class NomadsHRRR():
 
-    def __init__(self, config):
+    def __init__(self, config, topo):
         """Init the NomadsHRRR class
 
         Arguments:
             config {dict} -- dictionary of configuration options
+            topo {Topo class} -- katana.data.topo.Topo class instance
         """
 
         self._logger = logging.getLogger(__name__)
 
         self.config = config
+        self.topo = topo
 
         self.buffer = self.config['input']['hrrr_buffer']
         self.directory = self.config['input']['hrrr_directory']
@@ -36,6 +38,8 @@ class NomadsHRRR():
         # create a daily list between the start and end date
         self.day_list = utils.daylist(self.start_date, self.end_date)
 
+        self.out_dir = self.config['output']['out_location']
+
         self._logger.debug('NomadsHRRR initialized')
 
     def initialize_data(self):
@@ -45,14 +49,14 @@ class NomadsHRRR():
         self.num_files = create_new_grib(
             self.date_list,
             self.directory, self.out_dir,
-            self.x1, self.y1, self._logger,
-            zone_letter=self.zone_letter,
-            zone_number=self.zone_number,
+            self.topo.x1, self.topo.y1, self._logger,
+            zone_letter=self.topo.zone_letter,
+            zone_number=self.topo.zone_number,
             buff=self.buffer,
             nthreads_w=self.nthreads_w,
             make_new_gribs=self.make_new_gribs)
 
-        self._logger.debug('NomadsHRRR data initialized')
+        self._logger.info('NomadsHRRR data initialized')
 
     def run(self):
         """Run the WindNinja simulation for NormadsHRRR
@@ -82,7 +86,7 @@ class NomadsHRRR():
             wn_cfg = deepcopy(self.config['wind_ninja'])
             wn_cfg['forecast_filename'] = out_dir_wn
             # wn_cfg['forecast_duration'] = 0  # num_list[idd]
-            wn_cfg['elevation_file'] = self.wn_topo
+            wn_cfg['elevation_file'] = self.topo.windninja_topo
 
             wn = WindNinja(
                 wn_cfg,

@@ -1,7 +1,7 @@
 import datetime
 import glob
 import os
-from subprocess import PIPE, Popen
+import subprocess
 
 import dateparser
 import numpy as np
@@ -12,38 +12,38 @@ fmt2 = '%H'
 
 
 def call_wgrib2(action, logger):
+    """Execute a wgrib2 command
+
+    Arguments:
+        action {str} -- command for wgrib2 to execute
+        logger {logger} -- logger instance
+
+    Returns:
+        Boolean -- True if call succeeds
+    """
+
     # run command line using Popen
     logger.debug('Running "{}"'.format(action))
-    s = Popen(action, shell=True, stdout=PIPE,
-              stderr=PIPE, universal_newlines=True)
 
-    # stream the output of WindNinja to the logger
-    output = []
-    fatl = False
-    with s.stdout:
-        for line in iter(s.stdout.readline, ""):
-            logger.debug(line.rstrip())
-            output.append(line.rstrip())
+    with subprocess.Popen(
+        action,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True
+    ) as s:
 
-    with s.stderr:
-        # eline = s.stderr.readline()
-        for line in iter(s.stderr.readline, ""):
-            logger.warning(line.rstrip())
-            output.append(line.rstrip())
+        # stream the output of WindNinja to the logger
+        return_code = s.wait()
+        if return_code:
+            for line in s.stdout:
+                logger.warning(line.rstrip())
+            logger.warning("An error occured while running wgrib2 action")
+        else:
+            for line in s.stdout:
+                logger.debug(line.rstrip())
 
-            # if it failed, find a different forecast hour
-            if "FATAL" in line:
-                fatl = True
-
-    # if errors then create an exception
-    return_code = s.wait()
-    if return_code:
-        logger.warning("An error occured while running wgrib2 action")
-        # for line in output:
-        #     logger.warning(line)
-        fatl = True
-
-    return fatl
+        return return_code
 
 
 def grib_to_small_grib(fp_in, out_dir, file_dt, x, y, logger,
