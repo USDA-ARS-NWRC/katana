@@ -4,13 +4,14 @@ import os
 from datetime import datetime
 
 import coloredlogs
-from inicheck.config import MasterConfig, UserConfig
+from inicheck.config import UserConfig
 from inicheck.output import print_config_report
 from inicheck.tools import check_config, get_user_config
 
 from katana import utils
-from katana.topo import Topo
 from katana.data.nomads_hrrr import NomadsHRRR
+from katana.data.wrf_out import WRFout
+from katana.topo import Topo
 
 
 def cli():
@@ -188,6 +189,8 @@ class Katana():
 
         if self.data_type == 'hrrr':
             self.input_data = NomadsHRRR(self.config, self.topo)
+        elif self.data_type == 'wrf_out':
+            self.input_data = WRFout(self.config, self.topo)
 
     def run_katana(self):
         """

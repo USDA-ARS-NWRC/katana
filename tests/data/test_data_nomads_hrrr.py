@@ -12,7 +12,7 @@ from katana.framework import Katana
 from tests.test_base import KatanaTestCase
 
 
-class TestStandardRME(KatanaTestCase):
+class TestNomadsHRRR(KatanaTestCase):
     """
     Integration test for Katana using Reynolds Mountain East
     """

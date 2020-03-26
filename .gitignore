@@ -1,6 +1,7 @@
 .vscode
 .venv
 .devcontainer
+wrfout_*
 
 # Examples files
 examples/*/*/maxus*.nc

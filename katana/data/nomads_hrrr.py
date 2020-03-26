@@ -1,11 +1,11 @@
-import os
-from datetime import datetime
-from copy import deepcopy
 import logging
+import os
+from copy import deepcopy
+from datetime import datetime
 
+from katana import utils
 from katana.grib_crop_wgrib2 import create_new_grib
 from katana.wind_ninja import WindNinja
-from katana import utils
 
 
 class NomadsHRRR():

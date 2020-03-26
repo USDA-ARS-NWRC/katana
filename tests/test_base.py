@@ -130,3 +130,23 @@ class KatanaTestCase(unittest.TestCase):
         config = cast_all_variables(config, config.mcfg)
 
         return config
+
+    def update_config(self, update, config=None):
+        """Update the config file with a dictionary of items
+
+        Arguments:
+            update {dict} -- dict of section updates
+
+        Keyword Arguments:
+            config {UserConfig} -- UserConfig object or copy 
+                the base config (default: {None})
+        """
+
+        if config is None:
+            config = deepcopy(self.base_config)
+
+        config.raw_cfg.update(update)
+        config.apply_recipes()
+        config = cast_all_variables(config, config.mcfg)
+
+        return config
