@@ -33,6 +33,7 @@ RUN mkdir -p /build/windninja \
     libyaml-dev \
     libfreetype6-dev \
     libcurl4-gnutls-dev \
+    libnetcdf-dev \
     libpng-dev \
     python3 \
     python3-pip \
@@ -99,7 +100,6 @@ RUN mkdir -p $WNSCRIPTS/$GDAL \
 # build windninja
 RUN apt-get install -y \
     libfontconfig1-dev \
-    libnetcdf-dev \
     qt4-dev-tools \
     libqtwebkit-dev \
     libboost-program-options-dev \
@@ -114,7 +114,7 @@ RUN apt-get install -y \
     && ldconfig \
     && export WINDNINJA_DATA=/build/windninja/windninja/data \
     && rm -rf /build/windninja/ \
-    && apt-get remove -y libfontconfig1-dev libcurl4-gnutls-dev libnetcdf-dev qt4-dev-tools \
+    && apt-get remove -y libfontconfig1-dev libcurl4-gnutls-dev qt4-dev-tools \
     libqtwebkit-dev libgeos-dev libboost-test-dev
 
 
