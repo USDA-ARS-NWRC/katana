@@ -17,11 +17,11 @@ class TestTopoConfigurations(KatanaTestCase):
                           'topo_windninja_topo.asc')
 
         config = self.change_config_option(
-            'topo', 'wind_ninja_topo_suffix', 'test_name')
+            'topo', 'wind_ninja_topo_suffix', '_windninja_topo_test')
 
         k = Katana(config)
         self.assertEquals(os.path.basename(k.topo.windninja_topo),
-                          'topotest_name.asc')
+                          'topo_windninja_topo_test.asc')
 
 
 class TestConfigurations(KatanaTestCase):
@@ -75,7 +75,7 @@ class TestInputHRRRConfigurations(KatanaTestCase):
         with self.assertRaises(Exception) as context:
             k.run_katana()
 
-        self.assertTrue("No good grib file for 2018-10-01 20"
+        self.assertTrue("No good grib file for 2019-03-05 13"
                         in str(context.exception))
 
     def test_input_data_type(self):

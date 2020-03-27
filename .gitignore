@@ -1,7 +1,8 @@
 .vscode
 .venv
 .devcontainer
-wrfout_*
+wrfout_d02_2019-03-05_12_00_00.nc
+tests/Lakes/input/hrrr.20190305.full
 
 # Examples files
 examples/*/*/maxus*.nc

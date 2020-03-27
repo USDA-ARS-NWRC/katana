@@ -35,13 +35,11 @@ def cli():
 
 
 class Katana():
-    """
-    Class created to wrap all functionality needed to run WindNinja in the
-    context of the USDA ARS snow-water supply modeling workflow
-    """
 
     def __init__(self, config):
-        """[summary]
+        """Katana class created to wrap all functionality needed to run
+        WindNinja in the context of the USDA ARS snow-water supply
+        modeling workflow
 
         Arguments:
             config {string} -- path to the config file or an

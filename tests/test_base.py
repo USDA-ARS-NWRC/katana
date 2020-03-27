@@ -1,4 +1,5 @@
 import os
+from glob import glob
 import shutil
 import unittest
 from copy import deepcopy
@@ -40,7 +41,7 @@ class KatanaTestCase(unittest.TestCase):
         Runs the short simulation over reynolds mountain east
         """
 
-        self.test_dir = os.path.abspath('tests/RME')
+        self.test_dir = os.path.abspath('tests/Lakes')
         self.test_config = os.path.abspath('tests/config.ini')
         self.out_dir = os.path.join(self.test_dir, 'output')
 
@@ -53,11 +54,14 @@ class KatanaTestCase(unittest.TestCase):
         Clean up the output directory
         """
 
+        # output directory
         folder = os.path.join(self.test_dir, 'output')
-        nodelete = os.path.join(folder, '.keep')
+
+        nodelete = ['.keep', 'wrfout_d02_2019-03-05_12_00_00_small.nc']
+        nodelete = [os.path.join(folder, filename) for filename in nodelete]
         for the_file in os.listdir(folder):
             file_path = os.path.join(folder, the_file)
-            if file_path != nodelete:
+            if file_path not in nodelete:
                 pass
                 try:
                     if os.path.isfile(file_path):
@@ -67,7 +71,12 @@ class KatanaTestCase(unittest.TestCase):
                 except Exception as e:
                     print(e)
 
-    def assertGold(self, assert_true=True):
+        # topo directory
+        folder = os.path.join(self.test_dir, 'topo', 'topo_windninja_topo*')
+        for filename in glob(folder):
+            os.unlink(filename)
+
+    def assertGold(self, data_type='hrrr', assert_true=True):
         """Assert that the gold files match
 
         Keyword Arguments:
@@ -75,17 +84,17 @@ class KatanaTestCase(unittest.TestCase):
                 assertFalse (default: {True})
         """
 
-        d1 = 'data20181001/wind_ninja_data'
-        hour_list = ['{}/topo_windninja_topo_10-01-2018_2000_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2100_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2200_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2300_50m_vel.asc']
+        d1 = 'data20190305/wind_ninja_data'
+        hour_list = ['{}/topo_windninja_topo_03-05-2019_1300_200m_vel.asc',
+                     '{}/topo_windninja_topo_03-05-2019_1400_200m_vel.asc',
+                     '{}/topo_windninja_topo_03-05-2019_1500_200m_vel.asc',
+                     '{}/topo_windninja_topo_03-05-2019_1600_200m_vel.asc']
         hour_list = [hl.format(d1) for hl in hour_list]
 
         for hl in hour_list:
             output_now = os.path.join(self.out_dir, hl)
 
-            output_gold = os.path.join(self.test_dir, 'gold',
+            output_gold = os.path.join(self.test_dir, 'gold', data_type,
                                        os.path.basename(hl))
             if assert_true:
                 self.assertTrue(compare_image(output_gold, output_now))

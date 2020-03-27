@@ -15,14 +15,10 @@ class TestWRFout(KatanaTestCase):
         adj_config = {
             'input': {
                 'data_type': 'wrf_out',
-                'wrf_filename': './RME/input/wrfout_d02_2019-03-05_12_00_00.nc'
-            },
-            'time': {
-                'start_date': '2015-03-03 00:00',
-                'end_date': '2015-03-03 04:00'
+                'wrf_filename': './Lakes/output/wrfout_d02_2019-03-05_12_00_00_small.nc'
             }
         }
         config = self.update_config(adj_config)
 
         self.assertTrue(self.run_katana(config))
-        # self.assertGold()
+        self.assertGold(data_type='wrf_out')

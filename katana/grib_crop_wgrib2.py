@@ -11,6 +11,22 @@ fmt1 = '%Y%m%d'
 fmt2 = '%H'
 
 
+def wind_ninja_output_dir(out_dir, file_datetime):
+    """Create the wind ninja output directory for HRRR files
+
+    Arguments:
+        out_dir {str} -- output directory path
+        file_datetime {datetime} -- datetime of the file
+
+    Returns:
+        str -- path to the cropped HRRR data
+    """
+    return os.path.join(out_dir,
+                        'data{}'.format(file_datetime.strftime(fmt1)),
+                        'wind_ninja_data',
+                        'hrrr.{}'.format(file_datetime.strftime(fmt1)))
+
+
 def call_wgrib2(action, logger):
     """Execute a wgrib2 command
 
@@ -72,10 +88,7 @@ def grib_to_small_grib(fp_in, out_dir, file_dt, x, y, logger,
     """
     # date format for files
     # fmt = '%Y%m%d-%H-%M'
-    dir1 = os.path.join(out_dir,
-                        'data{}'.format(file_dt.strftime(fmt1)),
-                        'wind_ninja_data',
-                        'hrrr.{}'.format(file_dt.strftime(fmt1)))
+    dir1 = wind_ninja_output_dir(out_dir, file_dt)
 
     # make file names
     tmp_grib = os.path.join(dir1, 'tmp.grib2')
@@ -235,10 +248,7 @@ def create_new_grib(date_list, directory, out_dir,
         logger.info(("Make new gribs set to False,"
                      " no grib files were processed"))
         for day in out_files.keys():
-            dir1 = os.path.join(out_dir,
-                                'data{}'.format(day.strftime(fmt1)),
-                                'wind_ninja_data',
-                                'hrrr.{}'.format(day.strftime(fmt1)))
+            dir1 = wind_ninja_output_dir(out_dir, day)
 
             files = glob.glob1(dir1, '*.grib2')
             out_files[day] = len(files)
