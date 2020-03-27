@@ -53,18 +53,38 @@ class WindNinja:
             action,
             shell=True,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
             universal_newlines=True
         ) as s:
 
-            # stream the output of WindNinja to the logger
+            # WindNinja may not push errors to stderr so it's
+            # hard to capture them properly and stream the results
+            # Here, we will stream to the debug and store all the
+            # output. Then write to error if WindNinja exits without
+            # a 0 code.
+            output = []
+            for line in iter(s.stdout.readline, ""):
+                self._logger.debug(line.rstrip())
+                output.append(line.rstrip())
+
+            # if errors then create an exception
             return_code = s.wait()
             if return_code:
-                for line in s.stdout:
-                    self._logger.error(line.rstrip())
+                for line in output:
+                    self._logger.error(line)
                 raise Exception('WindNinja has an error')
-            else:
-                for line in s.stdout:
-                    self._logger.debug(line.rstrip())
+                return False
 
-            return return_code
+            return True
+
+            # # stream the output of WindNinja to the logger
+            # return_code = s.wait()
+            # if return_code:
+            #     for line in s.stdout:
+            #         self._logger.error(line.rstrip())
+            #     raise Exception('WindNinja has an error')
+            # else:
+            #     for line in s.stdout:
+            #         self._logger.debug(line.rstrip())
+
+            # return return_code

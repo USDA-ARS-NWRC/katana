@@ -1,11 +1,11 @@
+# katana
+
 [![GitHub version](https://badge.fury.io/gh/USDA-ARS-NWRC%2Fkatana.svg)](https://badge.fury.io/gh/USDA-ARS-NWRC%2Fkatana)
 [![Docker Build Status](https://img.shields.io/docker/build/usdaarsnwrc/katana.svg)](https://hub.docker.com/r/usdaarsnwrc/katana/)
 [![Docker Automated build](https://img.shields.io/docker/automated/usdaarsnwrc/katana.svg)](https://hub.docker.com/r/usdaarsnwrc/katana/)
 [![Build Status](https://travis-ci.com/USDA-ARS-NWRC/katana.svg?branch=master)](https://travis-ci.com/USDA-ARS-NWRC/katana)
 [![Coverage Status](https://coveralls.io/repos/github/USDA-ARS-NWRC/katana/badge.svg?branch=master)](https://coveralls.io/github/USDA-ARS-NWRC/katana?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/02c98487a2fdd524e6e9/maintainability)](https://codeclimate.com/github/USDA-ARS-NWRC/katana/maintainability)
-
-# katana
 
 A project for bringing [WindNinja] simulations into the AWSM system.
 
@@ -25,6 +25,8 @@ The steps that Katana takes are as follows:
 - [katana](#katana)
 - [Input Forcing Files](#input-forcing-files)
   - [High Resolution Rapid Refresh (HRRR)](#high-resolution-rapid-refresh-hrrr)
+  - [Weather Research and Forecasting (WRF) Model](#weather-research-and-forecasting-wrf-model)
+    - [WRF Surface Files](#wrf-surface-files)
 - [Using Katana](#using-katana)
   - [Installing Katana Locally](#installing-katana-locally)
   - [Command Line Usage](#command-line-usage)
@@ -52,6 +54,21 @@ hrrr/
     hrrr.<YYYYMMDD>/
         hrrr.t<IH>z.wrfsfcf<FH>.grib2
 ```
+
+## Weather Research and Forecasting (WRF) Model
+
+The [Weather Research and Forecasts (WRF)](https://www.mmm.ucar.edu/weather-research-and-forecasting-model) model is a mesoscale numerical weather prediction system that is the foundation of many research and operational application (like HRRR). WRF output files, or `wrfout` files, are the standard output files produced by WRF. WindNinja has the ability to load 2 types of `wrfout` files, the surface files and 3D files. In most cases, Katana will be used with the surface files that have a wind vectors at some height above the surface. The standard output of `wrfout` files are netCDF which is the only file type that WindNinja can open for WRF.
+
+### WRF Surface Files
+
+For WindNinja to identify the use of the surface files, the global netCDF attribute `TITLE` must have the word `WRF` in the netCDF title. Therefore, it will be best practice for Katana to keep all the global attributes of the original netCDF file if there are requirements to remove variables or crop the domain.
+
+The variables that WindNinja requires from the `wrfout` files are the following:
+
+1. `T2` - air temperature at 2 meters
+2. `V10` - V component of wind at 10 meters
+3. `U10` - U component of wind at 10 meters
+4. `QCLOUD` - cloud water mixing ratio
 
 # Using Katana
 
