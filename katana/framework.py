@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime
 
+import pytz
 import coloredlogs
 from inicheck.config import UserConfig
 from inicheck.output import print_config_report
@@ -112,6 +113,16 @@ class Katana():
         self.start_date = self.config['time']['start_date']
         self.end_date = self.config['time']['end_date']
         self.fmt_date = '%Y%m%d'
+
+        # ASSUMPITON: most atmospheric models are in UTC so the time zone
+        # of the input start and end date will be in UTC. WindNinja does
+        # have an option to do time zones but for now everything is UTC
+        self.start_date = pytz.utc.localize(self.start_date)
+        self.end_date = pytz.utc.localize(self.end_date)
+
+        # update the config
+        self.config['time']['start_date'] = self.start_date
+        self.config['time']['end_date'] = self.end_date
 
         # create an hourly time step between the start date and end date
         self.date_list = utils.daterange(self.start_date, self.end_date)

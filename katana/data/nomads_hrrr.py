@@ -6,9 +6,10 @@ from datetime import datetime
 from katana import utils
 from katana.grib_crop_wgrib2 import create_new_grib
 from katana.wind_ninja import WindNinja
+from katana.data.data_base import BaseData
 
 
-class NomadsHRRR():
+class NomadsHRRR(BaseData):
 
     def __init__(self, config, topo):
         """Init the NomadsHRRR class
@@ -30,7 +31,6 @@ class NomadsHRRR():
 
         self.start_date = self.config['time']['start_date']
         self.end_date = self.config['time']['end_date']
-        self.fmt_date = '%Y%m%d'
 
         # create an hourly time step between the start date and end date
         self.date_list = utils.daterange(self.start_date, self.end_date)
@@ -70,23 +70,16 @@ class NomadsHRRR():
 
             start_time = datetime.now()
 
-            out_dir_day = os.path.join(self.out_dir,
-                                       'data{}'.format(
-                                           day.strftime(self.fmt_date)),
-                                       'wind_ninja_data')
+            out_dir_day = self.make_output_day_folder(day)
+
             out_dir_wn = os.path.join(out_dir_day,
                                       'hrrr.{}'.format(
                                           day.strftime(self.fmt_date)))
-
-            # make output folder if it doesn't exist
-            if not os.path.isdir(out_dir_day):
-                os.makedirs(out_dir_day)
 
             # run WindNinja_cli
             wn_cfg = deepcopy(self.config['wind_ninja'])
             wn_cfg['forecast_filename'] = out_dir_wn
             wn_cfg['output_path'] = out_dir_day
-            # wn_cfg['forecast_duration'] = 0  # num_list[idd]
             wn_cfg['elevation_file'] = self.topo.windninja_topo
 
             wn = WindNinja(

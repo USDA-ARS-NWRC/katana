@@ -27,14 +27,18 @@ class Topo():
         self.windninja_prefix = os.path.splitext(
             os.path.basename(self.topo_filename))[0]
 
+        self.windnina_filenames = '{}{}'.format(
+            self.windninja_prefix, self.config['topo']['wind_ninja_topo_suffix']
+        )
+
         # write ascii dem for WindNinja
         dir_topo = os.path.dirname(self.topo_filename)
-        self.windninja_topo = os.path.join(dir_topo, '{}{}.asc'.format(
-            self.windninja_prefix, self.config['topo']['wind_ninja_topo_suffix']
+        self.windninja_topo = os.path.join(dir_topo, '{}.asc'.format(
+            self.windnina_filenames
         ))
 
-        self.windninja_topo_prj = os.path.join(dir_topo, '{}{}.prj'.format(
-            self.windninja_prefix, self.config['topo']['wind_ninja_topo_suffix']
+        self.windninja_topo_prj = os.path.join(dir_topo, '{}.prj'.format(
+            self.windnina_filenames
         ))
 
         # get info about model domain
