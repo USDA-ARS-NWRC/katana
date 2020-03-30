@@ -85,6 +85,7 @@ class NomadsHRRR():
             # run WindNinja_cli
             wn_cfg = deepcopy(self.config['wind_ninja'])
             wn_cfg['forecast_filename'] = out_dir_wn
+            wn_cfg['output_path'] = out_dir_day
             # wn_cfg['forecast_duration'] = 0  # num_list[idd]
             wn_cfg['elevation_file'] = self.topo.windninja_topo
 

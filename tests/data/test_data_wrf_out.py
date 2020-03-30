@@ -15,7 +15,7 @@ class TestWRFout(KatanaTestCase):
         adj_config = {
             'input': {
                 'data_type': 'wrf_out',
-                'wrf_filename': './Lakes/output/wrfout_d02_2019-03-05_12_00_00_small.nc'
+                'wrf_filename': './Lakes/input/wrfout_d02_2019-03-05_12_00_00_small.nc'
             }
         }
         config = self.update_config(adj_config)

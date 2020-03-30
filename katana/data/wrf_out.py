@@ -1,4 +1,5 @@
 import logging
+import os
 from copy import deepcopy
 from datetime import datetime
 
@@ -57,10 +58,27 @@ class WRFout():
 
         start_time = datetime.now()
 
+        if len(self.day_list) == 1:
+            out_dir_day = os.path.join(self.out_dir,
+                                       'data{}'.format(
+                                           self.day_list[0].strftime(
+                                               self.fmt_date)),
+                                       'wind_ninja_data')
+        else:
+            # The file is split up over days
+            # Therefore will have to write to a temporary directory
+            # and sort the files after WindNinja runs
+            out_dir_day = os.path.join(self.out_dir, 'tmp')
+
+            # make output folder if it doesn't exist
+        if not os.path.isdir(out_dir_day):
+            os.makedirs(out_dir_day)
+
         # run WindNinja_cli
         wn_cfg = deepcopy(self.config['wind_ninja'])
         wn_cfg['forecast_filename'] = self.wrf_filename
         wn_cfg['elevation_file'] = self.topo.windninja_topo
+        wn_cfg['output_path'] = out_dir_day
 
         wn = WindNinja(
             wn_cfg,
