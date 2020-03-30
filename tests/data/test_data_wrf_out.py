@@ -16,7 +16,6 @@ class TestWRFout(KatanaTestCase):
             'input': {
                 'data_type': 'wrf_out',
                 'wrf_filename': './Lakes/input/wrfout_d02_2019-03-05_12_00_00_small.nc'  # noqa
-                # 'wrf_filename': './Lakes/input/wrfout_d02_2019-03-05_12_00_00.nc'
             }
         }
         config = self.update_config(adj_config)

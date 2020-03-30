@@ -57,7 +57,7 @@ class KatanaTestCase(unittest.TestCase):
         # output directory
         folder = os.path.join(self.test_dir, 'output')
 
-        nodelete = ['.keep', 'wrfout_d02_2019-03-05_12_00_00_small.nc']
+        nodelete = ['.keep']
         nodelete = [os.path.join(folder, filename) for filename in nodelete]
         for the_file in os.listdir(folder):
             file_path = os.path.join(folder, the_file)
