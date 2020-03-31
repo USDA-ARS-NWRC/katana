@@ -35,6 +35,7 @@ The steps that Katana takes are as follows:
     - [Ingesting into SMRF](#ingesting-into-smrf)
 - [Wind Ninja](#wind-ninja)
   - [Using with NOMADS HRRR](#using-with-nomads-hrrr)
+  - [Using with WRF](#using-with-wrf)
   - [Threading in WindNinja](#threading-in-windninja)
 
 # Input Forcing Files
@@ -132,6 +133,10 @@ Wind Ninja can use two different types of solvers: a mass solver or a mass and m
 HRRR forecast files used in `katana` are through WindNinja [NOMADS](http://nomads.ncep.noaa.gov/) support. WindNinja has the ability to download the HRRR forecasts for you but this is not the use case for `katana`. The HRRR surface file (`wrfsfc`) files are downloaded externally from NOMADS and kept in their file structure. WindNinja can read the directory of these files and perform simulations.
 
 WindNinja can take another type of HRRR data from NCEP but this requires a more rigid file format and is not the preferred way for `katana`.
+
+## Using with WRF
+
+WRF produces `wrfout` files that WindNinja can read. These files can have multiple time steps in the file but WindNinja does not provide a method to subset the time. Instead, all time steps in the file will be ran with WindNinja. Katana deals with this by outputing all WRF WindNinja simulations to a temporary directory then organizes them into day folders afterwards. Any outputs that aren't between Katana's start and end date will deleted.
 
 ## Threading in WindNinja
 
