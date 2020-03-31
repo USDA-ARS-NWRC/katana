@@ -4,9 +4,9 @@ from copy import deepcopy
 from datetime import datetime
 
 from katana import utils
+from katana.data.data_base import BaseData
 from katana.grib_crop_wgrib2 import create_new_grib
 from katana.wind_ninja import WindNinja
-from katana.data.data_base import BaseData
 
 
 class NomadsHRRR(BaseData):

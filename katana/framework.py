@@ -3,8 +3,8 @@ import logging
 import os
 from datetime import datetime
 
-import pytz
 import coloredlogs
+import pytz
 from inicheck.config import UserConfig
 from inicheck.output import print_config_report
 from inicheck.tools import check_config, get_user_config

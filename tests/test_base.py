@@ -1,8 +1,8 @@
 import os
-from glob import glob
 import shutil
 import unittest
 from copy import deepcopy
+from glob import glob
 
 import numpy as np
 from inicheck.tools import cast_all_variables, get_user_config

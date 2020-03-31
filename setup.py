@@ -43,13 +43,13 @@ if sys.argv[-1] != 'test':
 
     with open(fname, 'w') as f:
         nchars = len(gitVersion) - 1
-        f.write("__gitPath__='{0}'\n".format(gitPath))
-        f.write("__gitVersion__='{0}'\n".format(gitVersion[:nchars]))
+        f.write("__gitPath__ = '{0}'\n".format(gitPath))
+        f.write("__gitVersion__ = '{0}'\n".format(gitVersion[:nchars]))
         f.close()
 
 setup(
-    author="Micah Sandusky",
-    author_email='micah.sandusky@ars.usda.gov',
+    author="USDA-ARS-NWRC",
+    author_email='scott.havens@usda.gov',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

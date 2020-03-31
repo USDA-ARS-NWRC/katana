@@ -28,7 +28,8 @@ class Topo():
             os.path.basename(self.topo_filename))[0]
 
         self.windnina_filenames = '{}{}'.format(
-            self.windninja_prefix, self.config['topo']['wind_ninja_topo_suffix']
+            self.windninja_prefix,
+            self.config['topo']['wind_ninja_topo_suffix']
         )
 
         # write ascii dem for WindNinja
@@ -84,13 +85,7 @@ class Topo():
                 gridmap = ds.variables['dem'].grid_mapping
                 prj_head = ds.variables[gridmap].spatial_ref
             else:
-                self._logger.warning('No projection info in topo file!!!')
-                self._logger.warning(
-                    'Will use projection info from command line!')
-                # create the projection header from given utm zone
-                prj_head = 'Projection UTM \nZone {} \n'.format(utm_num)
-                prj_head += 'Datum NAD83 \nZunits METERS \nUnits METERS\n'
-                prj_head += 'Spheroid WGS84 \nXshift 0.0 \nYshift 0.0 \nParamters'
+                self._logger.error('No projection info in topo file')
 
             # close the netcdf
             ds.close()
@@ -99,13 +94,13 @@ class Topo():
             # write the header
             asc_head = "ncols {}\nnrows {}\nxllcorner {}\nyllcorner \
                 {}\ncellsize {}\nNODATA_value {}"
-            asc_head = asc_head.format(self.topo_stats['nx'], self.topo_stats['ny'],
-                                       np.min(
-                                           self.topo_stats['x'])-cell_size/2.0,
-                                       np.min(
-                                           self.topo_stats['y'])-cell_size/2.0,
-                                       np.abs(self.topo_stats['dv']),
-                                       fillval)
+            asc_head = asc_head.format(
+                self.topo_stats['nx'],
+                self.topo_stats['ny'],
+                np.min(self.topo_stats['x'])-cell_size/2.0,
+                np.min(self.topo_stats['y'])-cell_size/2.0,
+                np.abs(self.topo_stats['dv']),
+                fillval)
 
             # write files
             np.savetxt(self.windninja_topo, dem, header=asc_head, comments='')

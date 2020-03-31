@@ -54,7 +54,7 @@ isort: ## using isort to sort imports
 	isort -rc -vb .
 
 lint: ## check style with flake8
-	flake8 katana tests
+	flake8 katana
 
 test: ## run tests quickly with the default Python
 	python setup.py test

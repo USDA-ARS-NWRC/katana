@@ -1,16 +1,16 @@
 import logging
 import os
+import shutil
 from copy import deepcopy
 from datetime import datetime
 from glob import glob
-import shutil
 
 import netCDF4 as nc
 import pytz
 
 from katana import utils
-from katana.wind_ninja import WindNinja
 from katana.data.data_base import BaseData
+from katana.wind_ninja import WindNinja
 
 
 class WRFout(BaseData):
