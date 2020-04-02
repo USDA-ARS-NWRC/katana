@@ -9,6 +9,8 @@ class Topo():
     """Class for working with and storing topo information
     """
 
+    FILLVAL = -9999
+
     def __init__(self, config):
         """Init the topo class
 
@@ -68,7 +70,6 @@ class Topo():
 
         # if not, make the files
         else:
-            fillval = -9999
             # get the prj file name
             asc_dir = os.path.dirname(self.windninja_topo)
             bn = os.path.splitext(os.path.basename(self.windninja_topo))[0]
@@ -87,7 +88,6 @@ class Topo():
             else:
                 self._logger.error('No projection info in topo file')
 
-            # close the netcdf
             ds.close()
 
             cell_size = np.abs(self.topo_stats['dv'])
@@ -100,7 +100,7 @@ class Topo():
                 np.min(self.topo_stats['x'])-cell_size/2.0,
                 np.min(self.topo_stats['y'])-cell_size/2.0,
                 np.abs(self.topo_stats['dv']),
-                fillval)
+                self.FILLVAL)
 
             # write files
             np.savetxt(self.windninja_topo, dem, header=asc_head, comments='')

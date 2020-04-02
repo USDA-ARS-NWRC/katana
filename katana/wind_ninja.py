@@ -76,15 +76,3 @@ class WindNinja:
                 return False
 
             return True
-
-            # # stream the output of WindNinja to the logger
-            # return_code = s.wait()
-            # if return_code:
-            #     for line in s.stdout:
-            #         self._logger.error(line.rstrip())
-            #     raise Exception('WindNinja has an error')
-            # else:
-            #     for line in s.stdout:
-            #         self._logger.debug(line.rstrip())
-
-            # return return_code

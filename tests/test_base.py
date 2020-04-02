@@ -36,31 +36,30 @@ class KatanaTestCase(unittest.TestCase):
     directory upon tear down.
     """
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """
         Runs the short simulation over reynolds mountain east
         """
 
-        self.test_dir = os.path.abspath('tests/Lakes')
-        self.test_config = os.path.abspath('tests/config.ini')
-        self.out_dir = os.path.join(self.test_dir, 'output')
+        cls.test_dir = os.path.abspath('tests/Lakes')
+        cls.test_config = os.path.abspath('tests/config.ini')
+        cls.out_dir = os.path.join(cls.test_dir, 'output')
 
         # read in the base configuration
-        self.base_config = get_user_config(self.test_config,
-                                           modules=['katana'])
+        cls.base_config = get_user_config(cls.test_config,
+                                          modules=['katana'])
 
     def tearDown(self):
         """
         Clean up the output directory
         """
 
-        # output directory
-        folder = os.path.join(self.test_dir, 'output')
-
         nodelete = ['.keep']
-        nodelete = [os.path.join(folder, filename) for filename in nodelete]
-        for the_file in os.listdir(folder):
-            file_path = os.path.join(folder, the_file)
+        nodelete = [os.path.join(self.out_dir, filename)
+                    for filename in nodelete]
+        for the_file in os.listdir(self.out_dir):
+            file_path = os.path.join(self.out_dir, the_file)
             if file_path not in nodelete:
                 pass
                 try:

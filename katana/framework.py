@@ -37,6 +37,8 @@ def cli():
 
 class Katana():
 
+    DATE_FORMAT = '%Y%m%d'
+
     def __init__(self, config):
         """Katana class created to wrap all functionality needed to run
         WindNinja in the context of the USDA ARS snow-water supply
@@ -112,7 +114,6 @@ class Katana():
         # find start and end dates
         self.start_date = self.config['time']['start_date']
         self.end_date = self.config['time']['end_date']
-        self.fmt_date = '%Y%m%d'
 
         # ASSUMPITON: most atmospheric models are in UTC so the time zone
         # of the input start and end date will be in UTC. WindNinja does

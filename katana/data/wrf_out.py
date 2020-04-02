@@ -30,23 +30,12 @@ class WRFout(BaseData):
 
         self._logger = logging.getLogger(__name__)
 
-        self.config = config
-        self.topo = topo
-
-        self.start_date = self.config['time']['start_date']
-        self.end_date = self.config['time']['end_date']
-
-        # create an hourly time step between the start date and end date
-        self.date_list = utils.daterange(self.start_date, self.end_date)
-
-        # create a daily list between the start and end date
-        self.day_list = utils.daylist(self.start_date, self.end_date)
+        super().__init__(config, topo)
 
         # WRF file information
         self.wrf_filename = self.config['input']['wrf_filename']
         self.get_wrf_time_info()
 
-        self.out_dir = self.config['output']['out_location']
         self.out_dir_tmp = os.path.join(self.out_dir, 'tmp')
 
         self._logger.debug('WRFout initialized')
@@ -107,11 +96,6 @@ class WRFout(BaseData):
                                  "than specified. WindNinja will perform "
                                  "simulations for all times in file".format(
                                      num_wrf - num_list))
-
-    def initialize_data(self):
-        """Initialize the data if needed
-        """
-        pass
 
     def run(self):
         """Run the WindNinja simulation for WRFout

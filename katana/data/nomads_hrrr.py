@@ -3,7 +3,6 @@ import os
 from copy import deepcopy
 from datetime import datetime
 
-from katana import utils
 from katana.data.data_base import BaseData
 from katana.grib_crop_wgrib2 import create_new_grib
 from katana.wind_ninja import WindNinja
@@ -21,24 +20,13 @@ class NomadsHRRR(BaseData):
 
         self._logger = logging.getLogger(__name__)
 
-        self.config = config
-        self.topo = topo
+        super().__init__(config, topo)
 
+        # HRRR specific config
         self.buffer = self.config['input']['hrrr_buffer']
         self.directory = self.config['input']['hrrr_directory']
         self.make_new_gribs = self.config['output']['make_new_gribs']
         self.nthreads_w = self.config['input']['hrrr_num_wgrib_threads']
-
-        self.start_date = self.config['time']['start_date']
-        self.end_date = self.config['time']['end_date']
-
-        # create an hourly time step between the start date and end date
-        self.date_list = utils.daterange(self.start_date, self.end_date)
-
-        # create a daily list between the start and end date
-        self.day_list = utils.daylist(self.start_date, self.end_date)
-
-        self.out_dir = self.config['output']['out_location']
 
         self._logger.debug('NomadsHRRR initialized')
 
@@ -74,7 +62,7 @@ class NomadsHRRR(BaseData):
 
             out_dir_wn = os.path.join(out_dir_day,
                                       'hrrr.{}'.format(
-                                          day.strftime(self.fmt_date)))
+                                          day.strftime(self.DATE_FORMAT)))
 
             # run WindNinja_cli
             wn_cfg = deepcopy(self.config['wind_ninja'])
