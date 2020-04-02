@@ -4,7 +4,7 @@
 [![Docker Build Status](https://img.shields.io/docker/build/usdaarsnwrc/katana.svg)](https://hub.docker.com/r/usdaarsnwrc/katana/)
 [![Docker Automated build](https://img.shields.io/docker/automated/usdaarsnwrc/katana.svg)](https://hub.docker.com/r/usdaarsnwrc/katana/)
 [![Build Status](https://travis-ci.com/USDA-ARS-NWRC/katana.svg?branch=master)](https://travis-ci.com/USDA-ARS-NWRC/katana)
-[![Coverage Status](https://coveralls.io/repos/github/USDA-ARS-NWRC/katana/badge.svg?branch=master)](https://coveralls.io/github/USDA-ARS-NWRC/katana?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/USDA-ARS-NWRC/katana/badge.svg?branch=HEAD)](https://coveralls.io/github/USDA-ARS-NWRC/katana?branch=HEAD)
 [![Maintainability](https://api.codeclimate.com/v1/badges/02c98487a2fdd524e6e9/maintainability)](https://codeclimate.com/github/USDA-ARS-NWRC/katana/maintainability)
 
 A project for bringing [WindNinja] simulations into the AWSM system.
