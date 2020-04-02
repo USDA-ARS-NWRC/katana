@@ -87,8 +87,6 @@ def netcdf_dem_to_ascii(fp_nc, fp_asc, logger, utm_let=None, utm_num=None):
         # get the netcdf
         ds = Dataset(fp_nc, 'r')
         dem = ds.variables['dem'][:]
-        # flip dem since we are now indexing from the bottom left
-        dem = np.flipud(dem)
 
         # create header for projection
         if hasattr(ds.variables['dem'], 'grid_mapping'):

@@ -2,6 +2,7 @@ import os
 import shutil
 import unittest
 from copy import deepcopy
+from glob import glob
 
 import numpy as np
 from inicheck.tools import cast_all_variables, get_user_config
@@ -66,6 +67,10 @@ class KatanaTestCase(unittest.TestCase):
                         shutil.rmtree(file_path)
                 except Exception as e:
                     print(e)
+
+        folder = os.path.join(self.test_dir, 'topo', 'topo_windninja_topo*')
+        for filename in glob(folder):
+            os.unlink(filename)
 
     def assertGold(self, assert_true=True):
         """Assert that the gold files match

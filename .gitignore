@@ -1,7 +1,9 @@
 .vscode
 .venv
+.devcontainer
 
 # Examples files
+tests/Lakes
 examples/*/*/maxus*.nc
 */*/output/RME
 */*/log.*
