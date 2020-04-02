@@ -1,15 +1,9 @@
-# Eclipse files
-.project
-.settings
-.pydevproject
-.DS_Store
-._.*
-
-*.lprof
-*.prof
-*.ipw
+.vscode
+.venv
+.devcontainer
 
 # Examples files
+tests/Lakes
 examples/*/*/maxus*.nc
 */*/output/RME
 */*/log.*
@@ -110,6 +104,6 @@ examples/simple_hill/* *.csv
 test_data/output/*
 */tmp/*
 
-tests/RME/output/data20181001/*
+tests/RME/output/*
 tests/RME/topo/*.asc
 tests/RME/topo/*.prj
