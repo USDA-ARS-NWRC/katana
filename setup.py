@@ -70,7 +70,7 @@ setup(
     packages=['katana'],
     test_suite='tests',
     url='https://github.com/usdaarsnwrc/katana',
-    version='0.3.1',
+    version='0.3.2',
     zip_safe=False,
     entry_points={
         'console_scripts': [
