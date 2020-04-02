@@ -1,12 +1,13 @@
 import netCDF4 as nc
 import numpy as np
 import logging
+import unittest
+import os
 
 from katana.get_topo import netcdf_dem_to_ascii
-from tests.test_base import KatanaTestCase
 
 
-class TestTopo(KatanaTestCase):
+class TestTopo(unittest.TestCase):
 
     def test_topo(self):
         """Check each hour against gold standard
@@ -24,3 +25,4 @@ class TestTopo(KatanaTestCase):
         self.assertTrue(np.array_equal(nt.variables['dem'][:], na))
 
         nt.close()
+        os.remove(topo_out)
