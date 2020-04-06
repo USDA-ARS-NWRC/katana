@@ -1,27 +1,41 @@
   
 #!/usr/bin/env bash
 
-# A script to create the gold files needed for SMRF
-# Run this script in the main smrf directory, the config
-# file will put the outputs in the correct place
+# A script to create the gold files needed for Katana
+# Run this script in the main katana directory, the config
+# file will put the outputs in the correct place.
+#
+# Arguments:
+#   pass one argument either `hrrr` or `wrf_out` for which
+#   gold files to recreate
 #
 # Run as:
-#     $ ./tests/RME/gold/make_gold_stations
+#     $ ./tests/Lakes/gold/make_gold <hrrr/wrf_out>
+
+if [ $# -eq 0 ]
+  then
+    echo "Must specify either hrrr or wrf_out"
+    exit 1
+fi
 
 read -r -p "Recreating gold standard, are you sure? [y/N] " response
 if [[ "$response" = "yes" || "$response" = "y" ]]
 then
-    echo "Updating RME station gold files"
+    echo "Updating $1 gold files"
     echo "Removing old gold files"
-    rm tests/RME/gold/*.nc
+    rm tests/Lakes/gold/$1/*.asc
     
-    echo "Running SMRF"
-    run_smrf tests/RME/gold/gold_config.ini
+    echo "Running Katana"
+    run_katana tests/Lakes/gold/$1/gold_config.ini
 
-    echo "Cleaning up"
-    rm tests/RME/gold/log.txt
-    rm tests/RME/gold/config.ini
-    rm -rf tests/RME/gold/input_backup
+    # reorganize
+    mv tests/Lakes/gold/$1/data20190305/wind_ninja_data/*_200m_vel.asc tests/Lakes/gold/$1
+
+    # Clean up
+    rm -r tests/Lakes/gold/$1/data20190305
+    rm tests/Lakes/gold/$1/wn_cfg.txt
+    rm tests/Lakes/gold/$1/log.txt
+
 else
-    echo "RME station gold files not updated"
+    echo "Lakes gold files not updated"
 fi
