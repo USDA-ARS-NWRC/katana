@@ -2,24 +2,20 @@ import netCDF4 as nc
 import numpy as np
 import logging
 
-from katana.get_topo import netcdf_dem_to_ascii
+from katana.topo import Topo
 from tests.test_base import KatanaTestCase
 
 
 class TestTopo(KatanaTestCase):
 
     def test_topo(self):
-        """Check each hour against gold standard
+        """Check that the ascii topo is equal to the netcdf topo
         """
 
-        topo_in = 'tests/RME/topo/topo.nc'
-        topo_out = 'tests/RME/output/topo.asc'
+        t = Topo(self.base_config.cfg)
 
-        logger = logging.getLogger(__name__)
-        netcdf_dem_to_ascii(topo_in, topo_out, logger)
-
-        nt = nc.Dataset(topo_in)
-        na = np.loadtxt(topo_out, skiprows=6)
+        nt = nc.Dataset(t.topo_filename)
+        na = np.loadtxt(t.windninja_topo, skiprows=6)
 
         self.assertTrue(np.array_equal(nt.variables['dem'][:], na))
 

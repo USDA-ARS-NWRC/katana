@@ -62,52 +62,43 @@ class Topo():
         Returns:
             None
         """
-        # check if files exist first
-        if os.path.exists(self.windninja_topo):
-            self._logger.warning(
-                '{} already exists, not creating again'.format(
-                    self.windninja_topo))
 
-        # if not, make the files
+        # get the prj file name
+        asc_dir = os.path.dirname(self.windninja_topo)
+        bn = os.path.splitext(os.path.basename(self.windninja_topo))[0]
+        fp_prj = os.path.join(asc_dir, bn+'.prj')
+
+        # get the netcdf
+        ds = Dataset(self.topo_filename, 'r')
+        dem = ds.variables['dem'][:]
+
+        # create header for projection
+        if hasattr(ds.variables['dem'], 'grid_mapping'):
+            gridmap = ds.variables['dem'].grid_mapping
+            prj_head = ds.variables[gridmap].spatial_ref
         else:
-            # get the prj file name
-            asc_dir = os.path.dirname(self.windninja_topo)
-            bn = os.path.splitext(os.path.basename(self.windninja_topo))[0]
-            fp_prj = os.path.join(asc_dir, bn+'.prj')
+            self._logger.error('No projection info in topo file')
 
-            # get the netcdf
-            ds = Dataset(self.topo_filename, 'r')
-            dem = ds.variables['dem'][:]
-            # flip dem since we are now indexing from the bottom left
-            dem = np.flipud(dem)
+        ds.close()
 
-            # create header for projection
-            if hasattr(ds.variables['dem'], 'grid_mapping'):
-                gridmap = ds.variables['dem'].grid_mapping
-                prj_head = ds.variables[gridmap].spatial_ref
-            else:
-                self._logger.error('No projection info in topo file')
+        cell_size = np.abs(self.topo_stats['dv'])
+        # write the header
+        asc_head = "ncols {}\nnrows {}\nxllcorner {}\nyllcorner \
+            {}\ncellsize {}\nNODATA_value {}"
+        asc_head = asc_head.format(
+            self.topo_stats['nx'],
+            self.topo_stats['ny'],
+            np.min(self.topo_stats['x']) - cell_size/2.0,
+            np.min(self.topo_stats['y']) - cell_size/2.0,
+            np.abs(self.topo_stats['dv']),
+            self.FILLVAL)
 
-            ds.close()
+        # write files
+        np.savetxt(self.windninja_topo, dem, header=asc_head, comments='')
 
-            cell_size = np.abs(self.topo_stats['dv'])
-            # write the header
-            asc_head = "ncols {}\nnrows {}\nxllcorner {}\nyllcorner \
-                {}\ncellsize {}\nNODATA_value {}"
-            asc_head = asc_head.format(
-                self.topo_stats['nx'],
-                self.topo_stats['ny'],
-                np.min(self.topo_stats['x'])-cell_size/2.0,
-                np.min(self.topo_stats['y'])-cell_size/2.0,
-                np.abs(self.topo_stats['dv']),
-                self.FILLVAL)
-
-            # write files
-            np.savetxt(self.windninja_topo, dem, header=asc_head, comments='')
-
-            # write prj
-            with open(fp_prj, 'w') as prj_file:
-                prj_file.write(prj_head)
+        # write prj
+        with open(fp_prj, 'w') as prj_file:
+            prj_file.write(prj_head)
 
     def get_topo_stats(self):
         """
