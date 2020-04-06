@@ -1,5 +1,6 @@
 # Python virtualenv
 .venv
+.devcontainer
 
 # VS Code specifics
 .vscode
