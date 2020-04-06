@@ -1,6 +1,5 @@
 import netCDF4 as nc
 import numpy as np
-import logging
 
 from katana.topo import Topo
 from tests.test_base import KatanaTestCase

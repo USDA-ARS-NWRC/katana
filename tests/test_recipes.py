@@ -6,7 +6,7 @@ from tests.test_base import KatanaTestCase
 
 
 class TestRecipes(KatanaTestCase):
-    """Test the recipes 
+    """Test the recipes
     """
 
     def cast_recipes(self, config):

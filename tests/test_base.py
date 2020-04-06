@@ -146,7 +146,7 @@ class KatanaTestCase(unittest.TestCase):
             update {dict} -- dict of section updates
 
         Keyword Arguments:
-            config {UserConfig} -- UserConfig object or copy 
+            config {UserConfig} -- UserConfig object or copy
                 the base config (default: {None})
         """
 
