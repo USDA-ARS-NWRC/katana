@@ -13,15 +13,15 @@ class TestTopoConfigurations(KatanaTestCase):
         """
 
         k = Katana(self.test_config)
-        self.assertEquals(os.path.basename(k.wn_topo),
+        self.assertEquals(os.path.basename(k.topo.windninja_topo),
                           'topo_windninja_topo.asc')
 
         config = self.change_config_option(
-            'topo', 'wind_ninja_topo_suffix', 'test_name')
+            'topo', 'wind_ninja_topo_suffix', '_windninja_topo_test')
 
         k = Katana(config)
-        self.assertEquals(os.path.basename(k.wn_topo),
-                          'topotest_name.asc')
+        self.assertEquals(os.path.basename(k.topo.windninja_topo),
+                          'topo_windninja_topo_test.asc')
 
 
 class TestConfigurations(KatanaTestCase):
@@ -34,7 +34,7 @@ class TestConfigurations(KatanaTestCase):
             'wind_ninja', 'initialization_method', 'AmericaNotAnOption')
 
         with self.assertRaises(Exception) as context:
-            k = Katana(config)
+            Katana(config)
 
         self.assertTrue("Error in config file"
                         in str(context.exception))
@@ -60,7 +60,7 @@ class TestConfigurations(KatanaTestCase):
         self.assertTrue(k.run_katana())
 
 
-class TestInputConfigurations(KatanaTestCase):
+class TestInputHRRRConfigurations(KatanaTestCase):
     """Test the input configuration options
     """
 
@@ -69,13 +69,13 @@ class TestInputConfigurations(KatanaTestCase):
         """
 
         config = self.change_config_option(
-            'input', 'directory', '/tmp')
+            'input', 'hrrr_directory', '/tmp')
 
         k = Katana(config)
         with self.assertRaises(Exception) as context:
             k.run_katana()
 
-        self.assertTrue("No good grib file for 2018-10-01 20"
+        self.assertTrue("No good grib file for 2019-03-05 13"
                         in str(context.exception))
 
     def test_input_data_type(self):
@@ -96,10 +96,10 @@ class TestInputConfigurations(KatanaTestCase):
         """
 
         config = self.change_config_option(
-            'input', 'buffer', 3000)
+            'input', 'hrrr_buffer', 3000)
         k = Katana(config)
         self.assertTrue(isinstance(k, Katana))
 
         config = self.change_config_option(
-            'input', 'buffer', '3000')
+            'input', 'hrrr_buffer', '3000')
         self.assertTrue(isinstance(k, Katana))

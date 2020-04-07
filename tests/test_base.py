@@ -36,29 +36,31 @@ class KatanaTestCase(unittest.TestCase):
     directory upon tear down.
     """
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """
         Runs the short simulation over reynolds mountain east
         """
 
-        self.test_dir = os.path.abspath('tests/RME')
-        self.test_config = os.path.abspath('tests/config.ini')
-        self.out_dir = os.path.join(self.test_dir, 'output')
+        cls.test_dir = os.path.abspath('tests/Lakes')
+        cls.test_config = os.path.abspath('tests/config.ini')
+        cls.out_dir = os.path.join(cls.test_dir, 'output')
 
         # read in the base configuration
-        self.base_config = get_user_config(self.test_config,
-                                           modules=['katana'])
+        cls.base_config = get_user_config(cls.test_config,
+                                          modules=['katana'])
 
     def tearDown(self):
         """
         Clean up the output directory
         """
 
-        folder = os.path.join(self.test_dir, 'output')
-        nodelete = os.path.join(folder, '.keep')
-        for the_file in os.listdir(folder):
-            file_path = os.path.join(folder, the_file)
-            if file_path != nodelete:
+        nodelete = ['.keep']
+        nodelete = [os.path.join(self.out_dir, filename)
+                    for filename in nodelete]
+        for the_file in os.listdir(self.out_dir):
+            file_path = os.path.join(self.out_dir, the_file)
+            if file_path not in nodelete:
                 pass
                 try:
                     if os.path.isfile(file_path):
@@ -68,11 +70,12 @@ class KatanaTestCase(unittest.TestCase):
                 except Exception as e:
                     print(e)
 
+        # topo directory
         folder = os.path.join(self.test_dir, 'topo', 'topo_windninja_topo*')
         for filename in glob(folder):
             os.unlink(filename)
 
-    def assertGold(self, assert_true=True):
+    def assertGold(self, data_type='hrrr', assert_true=True):
         """Assert that the gold files match
 
         Keyword Arguments:
@@ -80,17 +83,17 @@ class KatanaTestCase(unittest.TestCase):
                 assertFalse (default: {True})
         """
 
-        d1 = 'data20181001/wind_ninja_data'
-        hour_list = ['{}/topo_windninja_topo_10-01-2018_2000_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2100_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2200_50m_vel.asc',
-                     '{}/topo_windninja_topo_10-01-2018_2300_50m_vel.asc']
+        d1 = 'data20190305/wind_ninja_data'
+        hour_list = ['{}/topo_windninja_topo_03-05-2019_1300_200m_vel.asc',
+                     '{}/topo_windninja_topo_03-05-2019_1400_200m_vel.asc',
+                     '{}/topo_windninja_topo_03-05-2019_1500_200m_vel.asc',
+                     '{}/topo_windninja_topo_03-05-2019_1600_200m_vel.asc']
         hour_list = [hl.format(d1) for hl in hour_list]
 
         for hl in hour_list:
             output_now = os.path.join(self.out_dir, hl)
 
-            output_gold = os.path.join(self.test_dir, 'gold',
+            output_gold = os.path.join(self.test_dir, 'gold', data_type,
                                        os.path.basename(hl))
             if assert_true:
                 self.assertTrue(compare_image(output_gold, output_now))
@@ -131,6 +134,26 @@ class KatanaTestCase(unittest.TestCase):
             config = deepcopy(self.base_config)
 
         config.raw_cfg[section][option] = value
+        config.apply_recipes()
+        config = cast_all_variables(config, config.mcfg)
+
+        return config
+
+    def update_config(self, update, config=None):
+        """Update the config file with a dictionary of items
+
+        Arguments:
+            update {dict} -- dict of section updates
+
+        Keyword Arguments:
+            config {UserConfig} -- UserConfig object or copy
+                the base config (default: {None})
+        """
+
+        if config is None:
+            config = deepcopy(self.base_config)
+
+        config.raw_cfg.update(update)
         config.apply_recipes()
         config = cast_all_variables(config, config.mcfg)
 

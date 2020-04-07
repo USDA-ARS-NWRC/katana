@@ -1,19 +1,18 @@
 import argparse
 import logging
 import os
-import sys
-from copy import deepcopy
 from datetime import datetime
 
 import coloredlogs
-from inicheck.config import MasterConfig, UserConfig
+import pytz
+from inicheck.config import UserConfig
 from inicheck.output import print_config_report
 from inicheck.tools import check_config, get_user_config
 
 from katana import utils
-from katana.get_topo import get_topo_stats, netcdf_dem_to_ascii
-from katana.grib_crop_wgrib2 import create_new_grib
-from katana.wind_ninja import WindNinja
+from katana.data.nomads_hrrr import NomadsHRRR
+from katana.data.wrf_out import WRFout
+from katana.topo import Topo
 
 
 def cli():
@@ -37,13 +36,13 @@ def cli():
 
 
 class Katana():
-    """
-    Class created to wrap all functionality needed to run WindNinja in the
-    context of the USDA ARS snow-water supply modeling workflow
-    """
+
+    DATE_FORMAT = '%Y%m%d'
 
     def __init__(self, config):
-        """[summary]
+        """Katana class created to wrap all functionality needed to run
+        WindNinja in the context of the USDA ARS snow-water supply
+        modeling workflow
 
         Arguments:
             config {string} -- path to the config file or an
@@ -94,30 +93,16 @@ class Katana():
         self.create_log()
 
         ################################################
-        # Find WindNinja parameters
+        # Initialize the topo
         ################################################
+        self.topo = Topo(self.config)
 
-        # prefix that wind ninja will use in the file naming convention
-        self.wn_prefix = os.path.splitext(os.path.basename(self.fp_dem))[0]
+        ################################################
+        # Initialize the input data
+        ################################################
+        self.initialize_input_data()
 
-        # write ascii dem for WindNinja
-        dir_topo = os.path.dirname(self.fp_dem)
-        self.wn_topo = os.path.join(dir_topo, '{}{}.asc'.format(
-            self.wn_prefix, self.config['topo']['wind_ninja_topo_suffix']
-        ))
-
-        self.wn_topo_prj = os.path.join(dir_topo, '{}{}.prj'.format(
-            self.wn_prefix, self.config['topo']['wind_ninja_topo_suffix']
-        ))
-
-        # write new files
-        netcdf_dem_to_ascii(self.fp_dem, self.wn_topo, self._logger,
-                            utm_let=self.zone_letter, utm_num=self.zone_number)
-
-        # get info about model domain
-        self.ts = get_topo_stats(self.fp_dem)
-        self.x1 = self.ts['x']
-        self.y1 = self.ts['y']
+        self._logger.debug('Katana initialized')
 
     def parse_config(self):
         """Parse the config file variables for running katana
@@ -126,15 +111,19 @@ class Katana():
             None
         """
 
-        # topo section
-        self.fp_dem = self.config['topo']['filename']
-        self.zone_letter = self.config['topo']['zone_letter']
-        self.zone_number = self.config['topo']['zone_number']
-
         # find start and end dates
         self.start_date = self.config['time']['start_date']
         self.end_date = self.config['time']['end_date']
-        self.fmt_date = '%Y%m%d'
+
+        # ASSUMPITON: most atmospheric models are in UTC so the time zone
+        # of the input start and end date will be in UTC. WindNinja does
+        # have an option to do time zones but for now everything is UTC
+        self.start_date = pytz.utc.localize(self.start_date)
+        self.end_date = pytz.utc.localize(self.end_date)
+
+        # update the config
+        self.config['time']['start_date'] = self.start_date
+        self.config['time']['end_date'] = self.end_date
 
         # create an hourly time step between the start date and end date
         self.date_list = utils.daterange(self.start_date, self.end_date)
@@ -142,18 +131,10 @@ class Katana():
         # create a daily list between the start and end date
         self.day_list = utils.daylist(self.start_date, self.end_date)
 
-        self.buff = self.config['input']['buffer']
         self.data_type = self.config['input']['data_type']
-        self.directory = self.config['input']['directory']
-        if self.data_type != 'hrrr':
-            raise IOError('Not an approved input datatype')
 
         self.out_dir = self.config['output']['out_location']
-        self.make_new_gribs = self.config['output']['make_new_gribs']
         self.wn_cfg = self.config['output']['wn_cfg']
-
-        # system config variables
-        self.nthreads_w = self.config['input']['num_wgrib_threads']
 
     def create_log(self):
         '''
@@ -209,56 +190,28 @@ class Katana():
         self._loglevel = numeric_level
         self._logger = logging.getLogger(__name__)
 
+    def initialize_input_data(self):
+        """Initialize the input data classes based on
+        the input data type
+        """
+
+        self._logger.info('Initializing input data')
+
+        if self.data_type == 'hrrr':
+            self.input_data = NomadsHRRR(self.config, self.topo)
+        elif self.data_type == 'wrf_out':
+            self.input_data = WRFout(self.config, self.topo)
+
     def run_katana(self):
         """
         Function to crop grib files, create WindNinja config, and run WindNinja
         """
 
-        # create the new grib files for entire run period
-        num_files = create_new_grib(
-            self.date_list,
-            self.directory, self.out_dir,
-            self.x1, self.y1, self._logger,
-            zone_letter=self.zone_letter,
-            zone_number=self.zone_number,
-            buff=self.buff,
-            nthreads_w=self.nthreads_w,
-            make_new_gribs=self.make_new_gribs)
+        # initialize the data in preparation for WindNinja simulation
+        self.input_data.initialize_data()
 
-        # make config, run wind ninja, make netcdf
-        for idd, day in enumerate(self.day_list):
-            self._logger.info('Running WindNinja for day {}'.format(day))
-            self._logger.debug(
-                '{} input files will be ran'.format(num_files[day]))
-
-            start_time = datetime.now()
-
-            out_dir_day = os.path.join(self.out_dir,
-                                       'data{}'.format(
-                                           day.strftime(self.fmt_date)),
-                                       'wind_ninja_data')
-            out_dir_wn = os.path.join(out_dir_day,
-                                      'hrrr.{}'.format(
-                                          day.strftime(self.fmt_date)))
-
-            # make output folder if it doesn't exist
-            if not os.path.isdir(out_dir_day):
-                os.makedirs(out_dir_day)
-
-            # run WindNinja_cli
-            wn_cfg = deepcopy(self.config['wind_ninja'])
-            wn_cfg['forecast_filename'] = out_dir_wn
-            # wn_cfg['forecast_duration'] = 0  # num_list[idd]
-            wn_cfg['elevation_file'] = self.wn_topo
-
-            wn = WindNinja(
-                wn_cfg,
-                self.config['output']['wn_cfg'])
-            wn.run_wind_ninja()
-
-            telapsed = datetime.now() - start_time
-            self._logger.debug('Running day took {} sec'.format(
-                telapsed.total_seconds()))
+        # run WindNinja
+        self.input_data.run()
 
         self.run_time()
         return True

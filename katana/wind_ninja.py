@@ -1,5 +1,5 @@
 import logging
-from subprocess import PIPE, Popen
+import subprocess
 
 
 class WindNinja:
@@ -48,42 +48,31 @@ class WindNinja:
 
         # run command line using Popen
         self._logger.info('Running "{}"'.format(action))
-        s = Popen(action, shell=True, stdout=PIPE,
-                  stderr=PIPE, universal_newlines=True)
 
-        # stream the output of WindNinja to the logger
-        output = []
-        with s.stdout:
+        with subprocess.Popen(
+            action,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        ) as s:
+
+            # WindNinja may not push errors to stderr so it's
+            # hard to capture them properly and stream the results
+            # Here, we will stream to the debug and store all the
+            # output. Then write to error if WindNinja exits without
+            # a 0 code.
+            output = []
             for line in iter(s.stdout.readline, ""):
                 self._logger.debug(line.rstrip())
                 output.append(line.rstrip())
 
-        # if errors then create an exception
-        return_code = s.wait()
-        if return_code:
-            for line in output:
-                self._logger.error(line)
-            raise Exception('WindNinja has an error')
-            return False
+            # if errors then create an exception
+            return_code = s.wait()
+            if return_code:
+                for line in output:
+                    self._logger.error(line)
+                raise Exception('WindNinja has an error')
+                return False
 
-        return True
-
-        # # read output from commands
-        # while True:
-        #     line = s.stdout.readline().decode()
-        #     eline = s.stderr.readline().decode()
-        #     self._logger.debug(line)
-
-        #     # if the process is done
-        #     if s.poll() is not None:
-        #         break
-
-        #     # error if WindNinja errors
-        #     if "Exception" in eline:
-        #         self._logger.error("WindNinja has an error")
-        #         raise Exception(eline)
-
-        # if s.poll() != 0:
-        #     self._logger.error(
-        #         'WindNinja has an error, last output was: {}'.format(line))
-        #     raise Exception(line)
+            return True
