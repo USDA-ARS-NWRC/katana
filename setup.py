@@ -7,7 +7,7 @@ import os
 import sys
 from subprocess import check_output
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 if sys.argv[-1] != 'test':
     # Grab and write the gitVersion from 'git describe'.
@@ -67,13 +67,17 @@ setup(
                              './recipes.ini']},
     keywords='katana',
     name='katana',
-    packages=['katana'],
+    packages=find_packages(include=['katana', 'katana.*']),
     test_suite='tests',
     url='https://github.com/usdaarsnwrc/katana',
-    version='0.3.2',
     zip_safe=False,
     entry_points={
         'console_scripts': [
             'run_katana=katana.framework:cli',
-        ]},
+        ]
+    },
+    use_scm_version={
+        "local_scheme": "node-and-date"
+    },
+    setup_requires=['setuptools_scm'],
 )
