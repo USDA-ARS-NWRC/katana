@@ -54,6 +54,28 @@ If you are proposing a feature:
 * Remember that this is a volunteer-driven project, and that contributions
   are welcome :)
 
+Versioning
+----------
+Katana uses setuptools_scm to set the version from tags.
+
+
+The development team of Katana attempts to adhere to semantic versioning. Here is the basics taken from
+the semantic versioning website.
+
+  * Patch version Z (x.y.Z | x > 0) MUST be incremented if only backwards compatible bug fixes are introduced.
+    A bug fix is defined as an internal change that fixes incorrect behavior.
+  * Minor version Y (x.Y.z | x > 0) MUST be incremented if new, backwards compatible functionality is introduced to the public API.
+    It MUST be incremented if any public API functionality is marked as deprecated.
+    It MAY be incremented if substantial new functionality or improvements are introduced within the private code.
+    It MAY include patch level changes. Patch version MUST be reset to 0 when minor version is incremented
+  * Major version X (X.y.z | X > 0) MUST be incremented if any backwards incompatible changes are introduced to the public API.
+    It MAY include minor and patch level changes. Patch and minor version MUST be reset to 0 when major version is incremented.
+  * Alpha and beta versions will follow `PEP-0440 <https://www.python.org/dev/peps/pep-0440/>` where X.Y.aN or X.Y.bN will
+    denote an alpha or beta release of the version X.Y
+
+For more info on versions see http://semver.org
+
+
 Get Started!
 ------------
 
@@ -81,9 +103,8 @@ Ready to contribute? Here's how to set up `katana` for local development.
 
     $ flake8 katana tests
     $ python setup.py test or py.test
-    $ tox
 
-   To get flake8 and tox, just pip install them into your virtualenv.
+   To get flake8, just pip install them into your virtualenv.
 
 6. Commit your changes and push your branch to GitHub::
 
@@ -102,8 +123,8 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 3.5 and 3.6, and for PyPy. Check
-   https://travis-ci.org/USDAARSNWRC/katana/pull_requests
+3. The pull request should work for Python 3.6. Check
+   https://github.com/USDA-ARS-NWRC/katana/actions
    and make sure that the tests pass for all supported Python versions.
 
 Tips
@@ -113,16 +134,3 @@ To run a subset of tests::
 
 
     $ python -m unittest tests.test_katana
-
-Deploying
----------
-
-A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
-
-$ bumpversion patch # possible: major / minor / patch
-$ git push
-$ git push --tags
-
-Travis will then deploy to PyPI if tests pass.
