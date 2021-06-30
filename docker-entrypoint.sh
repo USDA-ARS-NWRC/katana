@@ -10,9 +10,10 @@ if [ $# -eq 0 ]; then
 elif [ "$1" = "test" ]; then
     echo "Run Katana docker test"
     cd /code/katana
+    python3 -m pip install -r requirements_dev.txt
     coverage run --source katana setup.py test
 
-    coverage report --fail-under=40
+    coverage report --fail-under=90
     coveralls
     exit 0
 

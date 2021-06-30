@@ -1,0 +1,40 @@
+name: Unittest, flake8
+
+# Run action on pull requests
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install flake8
+
+      - name: Lint with flake8
+        run: |
+          flake8 katana tests
+
+  unittest:
+    needs: flake8
+    name: Docker unittest
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v2
+
+     - name: Build Docker image 
+       run: docker build  -t usdaarsnwrc/katana .
+
+     - name: Run tests inside the container
+       run: docker run usdaarsnwrc/katana test
+

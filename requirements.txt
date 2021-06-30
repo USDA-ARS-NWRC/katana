@@ -3,9 +3,6 @@ coloredlogs==6.1
 numpy>=1.14.0
 pytz
 utm==0.4.0
-coverage>=4.5.1
-coveralls>=1.3.0
 dateparser==0.7.2
-PyYAML==5.3
 inicheck
 setuptools_scm==3.5.0
