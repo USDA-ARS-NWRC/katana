@@ -36,5 +36,5 @@ jobs:
        run: docker build  -t usdaarsnwrc/katana .
 
      - name: Run tests inside the container
-       run: docker run -it usdaarsnwrc/katana test
+       run: docker run usdaarsnwrc/katana test
 

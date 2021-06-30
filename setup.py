@@ -6,15 +6,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    author="USDA-ARS-NWRC",
-    author_email='scott.havens@usda.gov',
+    author="USDA ARS NWRC",
+    author_email='snow@ars.usda.gov',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: CCO 1.0',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
     description="Downscaling of atmospheric wind simulations using WindNinja \

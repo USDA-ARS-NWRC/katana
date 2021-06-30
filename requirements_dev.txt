@@ -1,5 +1,7 @@
 -r requirements.txt
-matplotlib
+coverage>=4.5.1
+coveralls>=1.3.0
+PyYAML>=5.4
 isort
 autopep8
 flake8
