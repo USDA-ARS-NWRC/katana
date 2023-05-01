@@ -2,9 +2,9 @@
 # will be build in this image and will not clean
 # up after itself. In the katana image, we'll copy
 # the build artifcats into the newer image
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
-LABEL maintainer="Scott Havens <scott.havens@usda.gov>"
+LABEL maintainer="Andrew Hedrick <andrew.hedrick@usda.gov>"
 
 ####################################################
 ## System requirements
@@ -43,8 +43,9 @@ RUN mkdir -p /build/windninja \
     wget \
     # end windninja
     && curl -L ftp://ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz | tar xz \
-    && curl -L https://github.com/firelab/windninja/archive/3.5.0.tar.gz | tar xz \
-    && mv windninja-3.5.0 /build/windninja/windninja \
+    # && curl -L https://github.com/firelab/windninja/archive/3.5.0.tar.gz | tar xz \
+    && curl -L https://github.com/firelab/windninja/archive/3.8.1.tar.gz | tar xz \
+    && mv windninja-3.8.1 /build/windninja/windninja \
     # && rm -rf /var/lib/apt/lists/* \
     && apt-get remove -y curl \
     && apt-get autoremove -y
@@ -55,7 +56,7 @@ RUN mkdir -p /build/windninja \
 ENV PREFIX=/usr/local
 # ENV POPPLER="poppler-0.23.4"
 ENV PROJ="proj-4.8.0"
-ENV GDAL="gdal-2.0.3"
+ENV GDAL="gdal-2.2.2"
 ENV WNSCRIPTS="/build/windninja/depends"
 
 # Poppler is not really needed for this application which means
@@ -87,7 +88,7 @@ RUN mkdir -p $WNSCRIPTS/$PROJ \
 # GDAL
 RUN mkdir -p $WNSCRIPTS/$GDAL \
     && cd $WNSCRIPTS/$GDAL \
-    && wget http://download.osgeo.org/gdal/2.0.3/$GDAL.tar.gz \
+    && wget http://download.osgeo.org/gdal/2.2.2/$GDAL.tar.gz \
     && tar -xvf $GDAL.tar.gz \
     && cd $GDAL \
     && ./configure --prefix=$PREFIX --with-curl=/usr/bin/curl-config \
