@@ -3,7 +3,6 @@ coloredlogs==6.1
 numpy>=1.14.0
 pytz
 utm==0.4.0
-dateparser==0.7.2
-regex==2022.3.2
+dateparser==1.1.1
 inicheck
 setuptools_scm==3.5.0
