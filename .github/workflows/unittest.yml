@@ -3,38 +3,45 @@ name: Unittest, flake8
 # Run action on pull requests
 on:
   pull_request:
-    branches: [main]
+    branches: [update_windninja_version]
 
 jobs:
   flake8:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.7"
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.7"
 
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install flake8
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install flake8
 
-      - name: Lint with flake8
-        run: |
-          flake8 katana tests
+    - name: Lint with flake8
+      run: |
+        flake8 katana tests
 
   unittest:
     needs: flake8
     name: Docker unittest
     runs-on: ubuntu-latest
+    
     steps:
-     - uses: actions/checkout@v2
+    - name: Checkout 
+      uses: actions/checkout@v3
 
-     - name: Build Docker image 
-       run: docker build  -t usdaarsnwrc/katana .
+    - name: Set Node-js 16.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
 
-     - name: Run tests inside the container
-       run: docker run usdaarsnwrc/katana test
+    - name: Build Docker image 
+      run: docker build  -t usdaarsnwrc/katana .
+
+    - name: Run tests inside the container
+      run: docker run usdaarsnwrc/katana test
 
