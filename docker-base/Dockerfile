@@ -1,8 +1,8 @@
 # This is a build image meaning that all the dependancies
 # will be build in this image and will not clean
 # up after itself. In the katana image, we'll copy
-# the build artifcats into the newer image
-FROM ubuntu:20.04
+# the build artifacts into the newer image
+FROM ubuntu:18.04
 
 LABEL maintainer="Andrew Hedrick <andrew.hedrick@usda.gov>"
 
@@ -55,8 +55,8 @@ RUN mkdir -p /build/windninja \
 ####################################################
 ENV PREFIX=/usr/local
 # ENV POPPLER="poppler-0.23.4"
-ENV PROJ="proj-4.8.0"
-ENV GDAL="gdal-2.2.2"
+ENV PROJ="proj-6.3.2"
+ENV GDAL="gdal-3.2.1"
 ENV WNSCRIPTS="/build/windninja/depends"
 
 # Poppler is not really needed for this application which means
@@ -74,7 +74,7 @@ ENV WNSCRIPTS="/build/windninja/depends"
 # Proj
 RUN mkdir -p $WNSCRIPTS/$PROJ \
     && cd $WNSCRIPTS/$PROJ \
-    && wget http://download.osgeo.org/proj/$PROJ.tar.gz \
+    && wget https://download.osgeo.org/proj/$PROJ.tar.gz \
     && tar xvfz $PROJ.tar.gz \
     && cd $PROJ \
     && ./configure --prefix=$PREFIX \
@@ -88,7 +88,7 @@ RUN mkdir -p $WNSCRIPTS/$PROJ \
 # GDAL
 RUN mkdir -p $WNSCRIPTS/$GDAL \
     && cd $WNSCRIPTS/$GDAL \
-    && wget http://download.osgeo.org/gdal/2.2.2/$GDAL.tar.gz \
+    && wget https://download.osgeo.org/gdal/${GDAL:5}/$GDAL.tar.gz \
     && tar -xvf $GDAL.tar.gz \
     && cd $GDAL \
     && ./configure --prefix=$PREFIX --with-curl=/usr/bin/curl-config \
